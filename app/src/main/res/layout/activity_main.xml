@@ -11,8 +11,7 @@
         <androidx.drawerlayout.widget.DrawerLayout
             android:id="@+id/drawer_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="start">
+            android:layout_height="match_parent">
 
             <!-- Fragmento de navegação -->
             <fragment
@@ -31,6 +30,7 @@
                 android:layout_gravity="start"
                 app:headerLayout="@layout/nav_header_main"
                 app:menu="@menu/navigation_drawer" />
+
         </androidx.drawerlayout.widget.DrawerLayout>
 
         <!-- Toolbar -->
@@ -41,12 +41,13 @@
             android:background="@color/purple_200"
             app:layout_anchorGravity="top" />
 
-        <!-- Layout principal -->
+        <!-- Layout principal que será substituído pelo NavHostFragment -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:layout_gravity="top">
+            android:layout_gravity="top"
+            android:visibility="gone"> <!-- Inicialmente escondido, pois será substituído pelo NavHostFragment -->
 
             <!-- Calendar View -->
             <CalendarView

@@ -61,8 +61,14 @@ public class MainActivity extends AppCompatActivity implements
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
-            return; // Certifique-se de que você está retornando aqui
+        } else {
+            // Navegue para a tela inicial do NavController
+            NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.nav_host_fragment_content_main);
+            NavController navController = navHostFragment.getNavController();
+            navController.navigate(R.id.nav_transform); // Certifique-se de que o ID corresponde ao seu fragmento inicial
         }
+
 
         // Inicializa o CalendarView e TextView para lembretes
         CalendarView calendarView = binding.calendarView;
