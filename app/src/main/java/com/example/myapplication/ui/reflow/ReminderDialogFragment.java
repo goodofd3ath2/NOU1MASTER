@@ -1,29 +1,32 @@
 package com.example.myapplication.ui.reflow;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.LayoutInflater;
-import android.widget.ArrayAdapter;
+import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.Toast;
-
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.myapplication.R;
 
 public class ReminderDialogFragment extends DialogFragment {
-    private int year, month, dayOfMonth;
-    private OnReminderSavedListener listener;
-    private CheckBox notificationCheckBox;
-    private Spinner prioritySpinner;
 
-    // Constructor to initialize the date
+    private OnReminderSavedListener listener;
+    private int year, month, dayOfMonth;
+
+    // Interface para ser implementada pela atividade
+    public interface OnReminderSavedListener {
+        void onReminderSaved(int year, int month, int dayOfMonth, String reminder, boolean notify, String priority);
+    }
+
+    // Construtor para passar os parâmetros de data
     public ReminderDialogFragment(int year, int month, int dayOfMonth) {
         this.year = year;
         this.month = month;
@@ -33,65 +36,52 @@ public class ReminderDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        // Setup listener for the parent activity or fragment
-        listener = (OnReminderSavedListener) getParentFragment();
-        if (listener == null) {
-            listener = (OnReminderSavedListener) getActivity();
-        }
+        // Infla o layout personalizado
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View view = inflater.inflate(R.layout.dialog_add_reminder, null);  // Supondo que seu arquivo XML seja chamado reminder_dialog_layout.xml
 
-        // Create dialog builder
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("Adicionar Lembrete");
+        // Referência para os componentes do layout
+        EditText editTextReminder = view.findViewById(R.id.edit_text_reminder);
+        CheckBox checkBoxNotify = view.findViewById(R.id.checkbox_notify);
+        RadioGroup radioGroupPriority = view.findViewById(R.id.radio_group_priority);
+        Button btnSave = view.findViewById(R.id.btn_save);
+        Button btnCancel = view.findViewById(R.id.btn_cancel);
 
-        // Create dialog layout
-        LinearLayout layout = new LinearLayout(getActivity());
-        layout.setOrientation(LinearLayout.VERTICAL);
+        // Configuração do AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        builder.setView(view);  // Define o layout personalizado no AlertDialog
 
-        // Text field for reminder description
-        final EditText input = new EditText(getActivity());
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        input.setHint("Escreva o lembrete");
-        layout.addView(input);
-
-        // Checkbox for notification
-        notificationCheckBox = new CheckBox(getActivity());
-        notificationCheckBox.setText("Receber notificação");
-        layout.addView(notificationCheckBox);
-
-        // Spinner for priority selection
-        prioritySpinner = new Spinner(getActivity());
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(),
-                R.array.priority_array, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        prioritySpinner.setAdapter(adapter);
-        layout.addView(prioritySpinner);
-
-        // Set layout for the dialog
-        builder.setView(layout);
-
-        // Setup "Save" button
-        builder.setPositiveButton("Salvar", (dialog, which) -> {
-            String reminder = input.getText().toString().trim();
-            boolean notify = notificationCheckBox.isChecked();
-            String priority = prioritySpinner.getSelectedItem().toString();
-
-            if (!reminder.isEmpty()) {
-                // Notify the listener with reminder data
-                listener.onReminderSaved(year, month, dayOfMonth, reminder, notify, priority);
-            } else {
-                // Optional: Show a Toast if the reminder is empty
-                Toast.makeText(getActivity(), "Por favor, escreva um lembrete.", Toast.LENGTH_SHORT).show();
+        // Listener para o botão de salvar
+        btnSave.setOnClickListener(v -> {
+            String reminderText = editTextReminder.getText().toString();
+            boolean notify = checkBoxNotify.isChecked();
+            String priority = "Normal";
+            if (radioGroupPriority.getCheckedRadioButtonId() == R.id.radio_priority_important) {
+                priority = "Importante";
             }
+
+            // Chame o listener para salvar o lembrete
+            if (listener != null) {
+                listener.onReminderSaved(year, month, dayOfMonth, reminderText, notify, priority);
+            }
+            dismiss();
         });
 
-        // Setup "Cancel" button
-        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.cancel());
+        // Listener para o botão de cancelar
+        btnCancel.setOnClickListener(v -> dismiss());
 
         return builder.create();
     }
 
-    // Interface for communication with the parent activity or fragment
-    public interface OnReminderSavedListener {
-        void onReminderSaved(int year, int month, int dayOfMonth, String reminder, boolean notify, String priority);
+    // Configure o listener corretamente no onAttach
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        try {
+            // Verifique se o contexto implementa OnReminderSavedListener
+            listener = (OnReminderSavedListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + " must implement OnReminderSavedListener");
+        }
     }
 }

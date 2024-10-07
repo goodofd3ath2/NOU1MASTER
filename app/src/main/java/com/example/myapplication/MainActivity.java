@@ -17,19 +17,19 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.customview.widget.Openable;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 
 import com.example.myapplication.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity implements
-        ReminderDialogFragment.OnReminderSavedListener,
+        ReminderDialogFragment.OnReminderSavedListener, // Certifique-se de implementar a interface
         EditReminderDialogFragment.EditReminderDialogListener {
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -44,14 +44,8 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Usando DataBinding para setar o layout
         ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-
-        // Configura a toolbar a partir do binding
-        if (binding.toolbar != null) {
-            setSupportActionBar(binding.toolbar);
-        } else {
-            Log.e(TAG, "Toolbar is null");
-        }
 
         // Verifica se o usuário está autenticado
         SharedPreferences preferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
@@ -61,14 +55,8 @@ public class MainActivity extends AppCompatActivity implements
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
-        } else {
-            // Navegue para a tela inicial do NavController
-            NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.nav_host_fragment_content_main);
-            NavController navController = navHostFragment.getNavController();
-            navController.navigate(R.id.nav_transform); // Certifique-se de que o ID corresponde ao seu fragmento inicial
+            return;
         }
-
 
         // Inicializa o CalendarView e TextView para lembretes
         CalendarView calendarView = binding.calendarView;
@@ -83,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 loadReminders(); // Carrega lembretes para a data selecionada
 
+                // Certifique-se de passar a instância correta da atividade
                 ReminderDialogFragment dialog = new ReminderDialogFragment(year, month, dayOfMonth);
                 dialog.show(getSupportFragmentManager(), "ReminderDialog");
             });
@@ -99,23 +88,20 @@ public class MainActivity extends AppCompatActivity implements
         // Verifica se o NavHostFragment não é nulo
         if (navHostFragment != null) {
             NavController navController = navHostFragment.getNavController();
-            Log.d(TAG, "NavController obtained: " + navController); // Aqui está a verificação do NavController
+            Log.d(TAG, "NavController obtained: " + navController);
 
+            // Configura a navegação do DrawerLayout
             NavigationView navigationView = binding.navView;
-
             if (navigationView != null) {
                 mAppBarConfiguration = new AppBarConfiguration.Builder(
                         R.id.nav_transform, R.id.nav_reflow, R.id.nav_slideshow, R.id.nav_settings)
-                        .setOpenableLayout(binding.drawerLayout) // Certifique-se de que o ID está correto
+                        .setOpenableLayout(binding.drawerLayout)
                         .build();
-                NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
                 NavigationUI.setupWithNavController(navigationView, navController);
             }
 
-            BottomNavigationView bottomNavigationView = null;
-            if (binding.appBarMain != null) {
-                bottomNavigationView = binding.appBarMain.contentMain.bottomNavView;
-            }
+            // Configura o BottomNavigationView
+            BottomNavigationView bottomNavigationView = binding.bottomNavView;
             if (bottomNavigationView != null) {
                 NavigationUI.setupWithNavController(bottomNavigationView, navController);
             }
@@ -123,8 +109,6 @@ public class MainActivity extends AppCompatActivity implements
             Toast.makeText(this, "NavHostFragment not found!", Toast.LENGTH_SHORT).show();
         }
     }
-
-
 
     @Override
     public void onReminderSaved(int year, int month, int dayOfMonth, String reminder, boolean notify, String priority) {
@@ -163,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements
     public void onReminderUpdated(String updatedReminder) {
         Log.d(TAG, "Updated Reminder: " + updatedReminder);
         Toast.makeText(this, "Reminder updated to: " + updatedReminder, Toast.LENGTH_SHORT).show();
-        // Lidar com o lembrete atualizado (ex: salvá-lo novamente ou atualizar a UI)
     }
 
     @Override
@@ -183,7 +166,6 @@ public class MainActivity extends AppCompatActivity implements
 
         return super.onOptionsItemSelected(item);
     }
-
 
     @Override
     public boolean onSupportNavigateUp() {
