@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:ignore="ExtraText">
+
+    <Spinner
+        android:id="@+id/spinner_disciplinas"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:padding="8dp" />
+
+    <EditText
+        android:id="@+id/editText_anotacoes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Escreva suas anotações aqui"
+        android:gravity="top"
+        android:inputType="textMultiLine"
+        android:minLines="5"
+        android:minHeight="48dp" /> <!-- Adicionando altura mínima -->
+
+    <Button
+        android:id="@+id/button_salvar_anotacao"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Salvar Anotação" />
+
+    <TextView
+        android:id="@+id/text_anotacoes_salvas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Anotações salvas:"
+        android:textStyle="bold"
+        android:visibility="gone"/>
+
+    <LinearLayout
+        android:id="@+id/linearLayout_anotacoes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+    <Button
+        android:id="@+id/button_adicionar_foto"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Adicionar Foto" />
+
+    <Button
+        android:id="@+id/button_adicionar_arquivo"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Adicionar Arquivo" />
+
+</LinearLayout>

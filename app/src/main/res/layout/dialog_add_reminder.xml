@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/edit_text_reminder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Escreva o lembrete" />
+
+    <CheckBox
+        android:id="@+id/checkbox_notify"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Receber notificação" />
+
+    <RadioGroup
+        android:id="@+id/radio_group_priority"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/radio_priority_normal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Normal" />
+
+        <RadioButton
+            android:id="@+id/radio_priority_important"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Importante" />
+
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/btn_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Salvar" />
+
+    <Button
+        android:id="@+id/btn_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cancelar" />
+
+</LinearLayout>
