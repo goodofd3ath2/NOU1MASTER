@@ -26,6 +26,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.databinding.ActivityMainBinding;
@@ -34,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements
-        ReminderDialogFragment.OnReminderSavedListener, // Certifique-se de implementar a interface
+        ReminderDialogFragment.OnReminderSavedListener,
         EditReminderDialogFragment.EditReminderDialogListener {
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private List<String> reminders = new ArrayList<>();
     private ReminderAdapter adapter;
-    private TextView reminderTextView;
+    private TextView reminderTextView; // Certifique-se de inicializar este TextView corretamente
     private int selectedYear;
     private int selectedMonth;
     private int selectedDayOfMonth;
@@ -53,6 +54,9 @@ public class MainActivity extends AppCompatActivity implements
 
         // Usando DataBinding para setar o layout
         ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+
+        // Inicializar o TextView corretamente
+        reminderTextView = binding.reminderTextView;
 
         // Verifica se o usuário está autenticado
         SharedPreferences preferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
@@ -65,9 +69,10 @@ public class MainActivity extends AppCompatActivity implements
             return;
         }
 
-        // Inicializa o CalendarView e TextView para lembretes
+        // Inicializa o CalendarView e RecyclerView
         CalendarView calendarView = binding.calendarView;
         RecyclerView reminderListView = binding.reminderList;
+        reminderListView.setLayoutManager(new LinearLayoutManager(this));
 
         // Configura o listener para a seleção de data
         if (calendarView != null) {
@@ -161,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements
         if (reminder != null) {
             reminderTextView.setText(reminder);
         } else {
-            reminderTextView.setText("No reminders found for this date.");
+            reminderTextView.setText(getString(R.string.no_reminder)); // Use resource string instead of hardcoded text
         }
     }
 

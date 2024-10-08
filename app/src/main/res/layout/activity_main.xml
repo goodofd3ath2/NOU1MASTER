@@ -79,6 +79,12 @@
                 android:text="@string/edit_reminder"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="16dp" />
+            <TextView
+                android:id="@+id/reminderTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No reminders yet." />
+
 
         </LinearLayout>
 

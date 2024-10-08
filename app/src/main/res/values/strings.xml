@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">My Application</string>
+    <string name="no_reminder">No reminders found for this date.</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -17,6 +18,7 @@
 
     <!-- Outras strings -->
     <string name="reminder_repeat_prompt">Escolha a repetição</string>
+
 
     <string name="menu_transform">Transform</string>
     <string name="menu_reflow">Reflow</string>
