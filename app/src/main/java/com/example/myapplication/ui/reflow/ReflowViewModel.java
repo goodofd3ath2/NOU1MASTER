@@ -26,7 +26,7 @@ public class ReflowViewModel extends ViewModel {
         return reminders;
     }
 
-    // Load reminders with context parameter
+    // Carregar lembretes com base na data (ano, mês, dia) e contexto
     public void loadReminders(int year, int month, int dayOfMonth, Context context) {
         new Thread(() -> {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -48,6 +48,7 @@ public class ReflowViewModel extends ViewModel {
         }).start();
     }
 
+    // Salvar lembretes no SharedPreferences
     public void saveReminder(int year, int month, int dayOfMonth, Reminder reminder, Context context) {
         new Thread(() -> {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -62,13 +63,46 @@ public class ReflowViewModel extends ViewModel {
                 }
                 reminderList.add(reminder);
 
-                // Create a new JSONArray to save all reminders
+                // Criar um novo JSONArray para salvar todos os lembretes
                 JSONArray newJsonArray = new JSONArray();
                 for (Reminder rem : reminderList) {
                     newJsonArray.put(rem.toJson());
                 }
 
                 prefs.edit().putString(dateKey, newJsonArray.toString()).apply();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    // Deletar um lembrete específico
+    public void deleteReminder(int year, int month, int dayOfMonth, Reminder reminder, Context context) {
+        new Thread(() -> {
+            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            String dateKey = String.format("%d_%d_%d", year, month, dayOfMonth);
+            String reminderData = prefs.getString(dateKey, "[]");
+
+            List<Reminder> reminderList = new ArrayList<>();
+            try {
+                JSONArray jsonArray = new JSONArray(reminderData);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    reminderList.add(Reminder.fromJson(jsonArray.getJSONObject(i)));
+                }
+
+                // Remover o lembrete específico da lista
+                reminderList.remove(reminder);
+
+                // Criar um novo JSONArray após remover o lembrete
+                JSONArray newJsonArray = new JSONArray();
+                for (Reminder rem : reminderList) {
+                    newJsonArray.put(rem.toJson());
+                }
+
+                prefs.edit().putString(dateKey, newJsonArray.toString()).apply();
+
+                // Atualiza a lista de lembretes no LiveData
+                reminders.postValue(reminderList);
             } catch (JSONException e) {
                 e.printStackTrace();
             }

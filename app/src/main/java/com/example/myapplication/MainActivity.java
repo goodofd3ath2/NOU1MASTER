@@ -7,26 +7,31 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.myapplication.ui.reflow.EditReminderDialogFragment;
+import com.example.myapplication.ui.reflow.ReminderAdapter;
 import com.example.myapplication.ui.reflow.ReminderDialogFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.customview.widget.Openable;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.databinding.ActivityMainBinding;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements
         ReminderDialogFragment.OnReminderSavedListener, // Certifique-se de implementar a interface
@@ -35,6 +40,8 @@ public class MainActivity extends AppCompatActivity implements
     private AppBarConfiguration mAppBarConfiguration;
     private static final String TAG = "MainActivity";
 
+    private List<String> reminders = new ArrayList<>();
+    private ReminderAdapter adapter;
     private TextView reminderTextView;
     private int selectedYear;
     private int selectedMonth;
@@ -60,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Inicializa o CalendarView e TextView para lembretes
         CalendarView calendarView = binding.calendarView;
-        reminderTextView = binding.reminderTextView;
+        RecyclerView reminderListView = binding.reminderList;
 
         // Configura o listener para a seleção de data
         if (calendarView != null) {
@@ -69,12 +76,26 @@ public class MainActivity extends AppCompatActivity implements
                 selectedMonth = month;
                 selectedDayOfMonth = dayOfMonth;
 
-                loadReminders(); // Carrega lembretes para a data selecionada
+                // Carrega lembretes da data selecionada
+                loadReminders();
 
-                // Certifique-se de passar a instância correta da atividade
+                // Abrir o diálogo de adição de lembrete para a data
                 ReminderDialogFragment dialog = new ReminderDialogFragment(year, month, dayOfMonth);
                 dialog.show(getSupportFragmentManager(), "ReminderDialog");
             });
+        }
+
+        // Configura o botão para editar lembrete
+        Button editReminderButton = findViewById(R.id.button_edit_reminder);
+        if (editReminderButton != null) {
+            editReminderButton.setOnClickListener(view -> {
+                // Criar uma instância do diálogo com o lembrete atual
+                String currentReminder = reminderTextView.getText().toString(); // Obter o lembrete atual
+                EditReminderDialogFragment dialogFragment = EditReminderDialogFragment.newInstance(currentReminder);
+                dialogFragment.show(getSupportFragmentManager(), "EditReminderDialog");
+            });
+        } else {
+            Log.e(TAG, "Button 'button_edit_reminder' não foi encontrado no layout.");
         }
 
         // Configura os componentes de navegação (Drawer, Bottom Navigation, etc.)
@@ -123,11 +144,12 @@ public class MainActivity extends AppCompatActivity implements
         if (reminder != null) {
             editor.putString(key, reminder);
             editor.apply();
+
+            // Carregar o lembrete após salvar
+            loadReminders();
         } else {
             Log.e(TAG, "Reminder is null, not saving.");
         }
-
-        loadReminders(); // Carrega lembretes após salvar
     }
 
     @SuppressLint("SetTextI18n")
@@ -139,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements
         if (reminder != null) {
             reminderTextView.setText(reminder);
         } else {
-            reminderTextView.setText("No reminders found.");
+            reminderTextView.setText("No reminders found for this date.");
         }
     }
 
@@ -147,6 +169,9 @@ public class MainActivity extends AppCompatActivity implements
     public void onReminderUpdated(String updatedReminder) {
         Log.d(TAG, "Updated Reminder: " + updatedReminder);
         Toast.makeText(this, "Reminder updated to: " + updatedReminder, Toast.LENGTH_SHORT).show();
+
+        // Atualizar lembretes exibidos após a edição
+        loadReminders();
     }
 
     @Override

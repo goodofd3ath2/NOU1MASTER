@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -33,9 +34,9 @@ public class AlarmBootReceiver extends BroadcastReceiver {
         String remindersJson = sharedPreferences.getString("reminders_list", null);
 
         if (remindersJson != null) {
-            List<Reminder> reminders = parseReminders(remindersJson); // Convert JSON to List<Reminder>
+            List<Reminder> reminders = parseReminders(remindersJson);
             for (Reminder reminder : reminders) {
-                setAlarm(context, reminder); // Set the alarm for each reminder
+                setAlarm(context, reminder);
             }
         } else {
             Log.d(TAG, "No reminders found to restart.");
@@ -47,7 +48,6 @@ public class AlarmBootReceiver extends BroadcastReceiver {
         try {
             JSONArray jsonArray = new JSONArray(remindersJson);
             for (int i = 0; i < jsonArray.length(); i++) {
-                // Assuming Reminder has a constructor that takes a JSON object
                 reminders.add(new Reminder(jsonArray.getJSONObject(i)));
             }
         } catch (JSONException e) {
@@ -56,39 +56,45 @@ public class AlarmBootReceiver extends BroadcastReceiver {
         return reminders;
     }
 
+    private int getPriorityCode(String priority) {
+        switch (priority) {
+            case "Importante":
+                return 1;  // High priority
+            case "Normal":
+            default:
+                return 0;  // Normal priority
+        }
+    }
+
     private void setAlarm(Context context, Reminder reminder) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
-        // Create an Intent for the AlarmReceiver
         Intent intent = new Intent(context, AlarmReceiver.class);
-        intent.putExtra("reminder", reminder.getText()); // Pass the reminder text
+        intent.putExtra("reminderText", reminder.getText());
 
-        // Create a PendingIntent with a unique request code for each reminder
+        // Generate a unique request code using time or some other unique identifier
+        int requestCode = (int) reminder.getTimeInMillis(); // You could also hash the reminder text or another field
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
-                reminder.getPriority(), // Unique request code for each alarm
+                requestCode,  // Use the integer value of priority as requestCode
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE // Use FLAG_IMMUTABLE for security
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        // Check if the app can schedule exact alarms for Android 12 and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (alarmManager != null && alarmManager.canScheduleExactAlarms()) {
-                // Set the alarm using setExact for precise timing
                 alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminder.getTimeInMillis(), pendingIntent);
-                Log.d(TAG, "Alarm set for: " + reminder.getText() + " at " + reminder.getTimeInMillis());
             } else {
-                Log.e(TAG, "Cannot schedule exact alarms. Prompting user to enable permission.");
-                showPermissionDialog(context); // Show permission dialog
+                showPermissionDialog(context);
             }
         } else {
-            // For API levels below 31, set the alarm directly
             if (alarmManager != null) {
                 alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminder.getTimeInMillis(), pendingIntent);
-                Log.d(TAG, "Alarm set for: " + reminder.getText() + " at " + reminder.getTimeInMillis());
             }
         }
     }
+
 
     private void showPermissionDialog(Context context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);

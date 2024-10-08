@@ -48,6 +48,20 @@
                 android:layout_marginTop="?attr/actionBarSize"
                 android:padding="16dp" />
 
+            <!-- RecyclerView para exibir os lembretes -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/reminder_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="vertical"/>
+
+            <Button
+                android:id="@+id/button_edit_reminder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Editar Lembrete"
+                android:visibility="gone" />
+
             <!-- TextView para exibir lembretes -->
             <TextView
                 android:id="@+id/reminder_text_view"

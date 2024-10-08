@@ -1,17 +1,13 @@
 package com.example.myapplication.ui.reflow;
 
-import static com.example.myapplication.ui.reflow.ReflowViewModel.PREFS_NAME;
-
 import android.Manifest;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,9 +28,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
 import com.example.myapplication.databinding.FragmentReflowBinding;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +38,6 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
     private TextView reminderTextView;
     private RecyclerView reminderRecyclerView;
     private ReminderAdapter adapter;
-    private static final String TAG = "ReflowFragment";
     private ReflowViewModel viewModel;
 
     private int selectedYear, selectedMonth, selectedDayOfMonth;
@@ -64,20 +56,6 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
         return root;
     }
 
-    private void loadReminders(int year, int month, int dayOfMonth) {
-        viewModel.loadReminders(year, month, dayOfMonth, getContext());  // Pass context here
-    }
-
-    private void setupCalendarView() {
-        calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            selectedYear = year;
-            selectedMonth = month;
-            selectedDayOfMonth = dayOfMonth;
-            updateReminderTextView(year, month, dayOfMonth);
-            loadReminders(year, month, dayOfMonth);
-        });
-    }
-
     private void initializeViews(View root) {
         calendarView = root.findViewById(R.id.calendarView1);
         reminderTextView = root.findViewById(R.id.reminderTextView);
@@ -91,7 +69,25 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
 
     private void setupRecyclerView() {
         reminderRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new ReminderAdapter(new ArrayList<>(), this::onReminderClick);
+        List<Reminder> reminderList = new ArrayList<>();
+
+        adapter = new ReminderAdapter(reminderList, new ReminderAdapter.OnReminderClickListener() {
+            @Override
+            public void onEdit(int position, Reminder reminder) {
+                // Lógica de edição
+                EditReminderDialogFragment dialogFragment = EditReminderDialogFragment.newInstance(reminder.getText());
+                dialogFragment.show(getParentFragmentManager(), "EditReminderDialog");
+            }
+
+            @Override
+            public void onDelete(int position, Reminder reminder) {
+                // Lógica de exclusão
+                Toast.makeText(getContext(), "Deletando: " + reminder.getText(), Toast.LENGTH_SHORT).show();
+                viewModel.deleteReminder(selectedYear, selectedMonth, selectedDayOfMonth, reminder, getContext());
+            }
+        });
+
+
         reminderRecyclerView.setAdapter(adapter);
     }
 
@@ -99,15 +95,39 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
         viewModel.getReminders().observe(getViewLifecycleOwner(), reminders -> {
             if (reminders.isEmpty()) {
                 adapter.updateData(new ArrayList<>());
-                adapter.addReminder(new Reminder("Nenhum lembrete.", System.currentTimeMillis(), 0));
+                adapter.addReminder(new Reminder("Nenhum lembrete.", System.currentTimeMillis(), "Normal", 0));
             } else {
                 adapter.updateData(reminders);
             }
         });
     }
 
+    private void setupCalendarView() {
+        calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+            selectedYear = year;
+            selectedMonth = month;
+            selectedDayOfMonth = dayOfMonth;
+            updateReminderTextView(year, month, dayOfMonth);
+            loadReminders(year, month, dayOfMonth);
+        });
+    }
+
+    private void loadReminders(int year, int month, int dayOfMonth) {
+        viewModel.loadReminders(year, month, dayOfMonth, getContext());
+    }
+
+    private void updateReminderTextView(int year, int month, int dayOfMonth) {
+        reminderTextView.setText(String.format("Lembretes para %d/%d/%d", dayOfMonth, month + 1, year));
+        loadReminders(year, month, dayOfMonth);
+    }
+
     private void toggleCalendarView() {
         calendarView.setVisibility(calendarView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+    }
+
+    private void showAddReminderDialog(int year, int month, int dayOfMonth) {
+        ReminderDialogFragment dialogFragment = new ReminderDialogFragment(year, month, dayOfMonth);
+        dialogFragment.show(getParentFragmentManager(), "ReminderDialog");
     }
 
     private void requestNotificationPermission() {
@@ -120,11 +140,6 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
         }
     }
 
-    private void showAddReminderDialog(int year, int month, int dayOfMonth) {
-        ReminderDialogFragment dialogFragment = new ReminderDialogFragment(year, month, dayOfMonth);
-        dialogFragment.show(getParentFragmentManager(), "ReminderDialog");
-    }
-
     @Override
     public void onReminderSaved(int year, int month, int dayOfMonth, String reminderText, boolean notify, String priority) {
         if (reminderText == null || reminderText.trim().isEmpty()) {
@@ -132,7 +147,11 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
             return;
         }
 
-        Reminder reminderObj = new Reminder(reminderText, System.currentTimeMillis(), Integer.parseInt(priority));
+        // Converter prioridade para o tipo String ("Importante" ou "Normal")
+        String priorityValue = "Importante".equals(priority) ? "Importante" : "Normal"; // 1 para importante, 0 para normal
+
+        // Criar o objeto Reminder com os parâmetros corretos
+        Reminder reminderObj = new Reminder(reminderText, System.currentTimeMillis(), priorityValue, 0);
         viewModel.saveReminder(year, month, dayOfMonth, reminderObj, getContext());
 
         if (notify) {
@@ -143,29 +162,29 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
         updateReminderTextView(year, month, dayOfMonth);
     }
 
+
     private void setAlarm(Reminder reminder) {
-        // Your existing alarm setting logic...
-    }
+        AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(getContext(), AlarmReceiver.class);
+        intent.putExtra("reminderText", reminder.getText());
 
-    private void updateReminderTextView(int year, int month, int dayOfMonth) {
-        reminderTextView.setText(String.format("Lembretes para %d/%d/%d", dayOfMonth, month + 1, year));
-        loadReminders(year, month, dayOfMonth);
-    }
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-    private void onReminderClick(Reminder reminder) {
-        EditReminderDialogFragment dialogFragment = EditReminderDialogFragment.newInstance(reminder.getText());
-        dialogFragment.show(getParentFragmentManager(), "EditReminderDialog");
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 101) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(getContext(), "Permissão para notificações concedida!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getContext(), "Permissão para notificações negada. As notificações não funcionarão.", Toast.LENGTH_LONG).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (!alarmManager.canScheduleExactAlarms()) {
+                Toast.makeText(getContext(), "Permissão para alarmes exatos não concedida!", Toast.LENGTH_SHORT).show();
+                return;
             }
+        }
+
+        try {
+            if (reminder.getRepeatInterval() > 0) {
+                alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, reminder.getTimeInMillis(), reminder.getRepeatInterval(), pendingIntent);
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminder.getTimeInMillis(), pendingIntent);
+            }
+        } catch (SecurityException e) {
+            Toast.makeText(getContext(), "Erro ao configurar o alarme: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
