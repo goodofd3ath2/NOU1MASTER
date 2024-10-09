@@ -30,14 +30,19 @@ public class EditReminderDialogFragment extends DialogFragment {
     }
 
     @Override
-    public void onAttach(@NonNull Context context) {
+    public void onAttach(Context context) {
         super.onAttach(context);
-        // Ensure the host activity/fragment implements the listener
-        if (context instanceof EditReminderDialogListener) {
-            listener = (EditReminderDialogListener) context;
-        } else {
+        try {
+            listener = (EditReminderDialogListener) context; // Fragment or Activity must implement this interface
+        } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement EditReminderDialogListener");
         }
+    }
+
+    // Call this method when the reminder is updated and saved in the dialog
+    private void saveReminder(Reminder updatedReminder) {
+        listener.onReminderUpdated(String.valueOf(updatedReminder));
+        dismiss(); // Close the dialog after saving
     }
 
     @NonNull

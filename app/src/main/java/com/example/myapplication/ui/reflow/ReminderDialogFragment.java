@@ -53,6 +53,8 @@ public class ReminderDialogFragment extends DialogFragment {
 
     public interface OnReminderSavedListener {
         void onReminderSaved(int year, int month, int dayOfMonth, String reminder, boolean notify, String priority);
+
+        void onReminderUpdated(String updatedReminderText);
     }
 
     @NonNull

@@ -20,7 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -47,105 +47,91 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
         binding = FragmentReflowBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        // Obter o ViewModel
+        // ViewModel para carregar e salvar lembretes
         viewModel = new ViewModelProvider(this).get(ReflowViewModel.class);
 
-        // Inicializar views e configurar componentes
+        // Inicializar os componentes visuais
         initializeViews(root);
         setupRecyclerView();
         setupCalendarView();
-        setupObservers(); // Configurar observadores para LiveData
-        requestNotificationPermission();
+        observeReminders();  // Observar mudanças nos lembretes
 
         return root;
+    }
+
+    @Override
+    public void onReminderUpdated(String updatedReminderText) {
+        // Atualizar o lembrete editado e recarregar os lembretes para a data selecionada
+        Reminder updatedReminder = new Reminder(updatedReminderText, System.currentTimeMillis(), "Normal", 0);
+        viewModel.updateReminder(selectedYear, selectedMonth, selectedDayOfMonth, updatedReminder, getContext());
+
+        // Recarregar os lembretes após a atualização
+        loadRemindersForSelectedDate();
     }
 
     private void initializeViews(View root) {
         calendarView = root.findViewById(R.id.calendarView1);
         reminderRecyclerView = root.findViewById(R.id.reminderRecyclerView);
 
-        // Configuração do botão para adicionar lembretes
-        root.findViewById(R.id.addReminderButton).setOnClickListener(v -> showAddReminderDialog(selectedYear, selectedMonth, selectedDayOfMonth));
+        Button addReminderButton = root.findViewById(R.id.addReminderButton);
+        addReminderButton.setOnClickListener(v -> showAddReminderDialog(selectedYear, selectedMonth, selectedDayOfMonth));
     }
 
     private void setupRecyclerView() {
-        // Configuração do RecyclerView
+        // Configuração do RecyclerView com adaptador e layout manager
         reminderRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new ReminderAdapter(reminderList, new ReminderAdapter.OnReminderClickListener() {
             @Override
             public void onEdit(int position, Reminder reminder) {
-                // Editar o lembrete
                 EditReminderDialogFragment dialogFragment = EditReminderDialogFragment.newInstance(reminder.getText());
                 dialogFragment.show(getParentFragmentManager(), "EditReminderDialog");
             }
 
             @Override
             public void onDelete(int position, Reminder reminder) {
-                // Excluir o lembrete
                 viewModel.deleteReminder(selectedYear, selectedMonth, selectedDayOfMonth, reminder, getContext());
-                adapter.removeReminder(position);  // Atualizar a RecyclerView após exclusão
+                adapter.removeReminder(position); // Atualizar RecyclerView
             }
         });
         reminderRecyclerView.setAdapter(adapter);
     }
 
     private void setupCalendarView() {
-        // Listener para alteração de data no CalendarView
+        // Quando o usuário seleciona uma data no CalendarView
         calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
             selectedYear = year;
             selectedMonth = month;
             selectedDayOfMonth = dayOfMonth;
-
-            // Carrega os lembretes da data selecionada
-            loadReminders(year, month, dayOfMonth);
+            loadRemindersForSelectedDate();  // Carregar lembretes da data selecionada
         });
     }
-    private void loadReminders(int year, int month, int dayOfMonth) {
-        // Carregar lembretes da data selecionada
-        viewModel.loadReminders(year, month, dayOfMonth, getContext());
 
-        // Observa as mudanças no LiveData
+    private void loadRemindersForSelectedDate() {
+        // Carregar lembretes da data selecionada e atualizar a RecyclerView
+        LiveData<List<Reminder>> remindersLiveData = viewModel.loadReminders(selectedYear, selectedMonth, selectedDayOfMonth, getContext());
+        remindersLiveData.observe(getViewLifecycleOwner(), reminders -> {
+            reminderList.clear();
+            if (reminders != null && !reminders.isEmpty()) {  // Corrigido para verificar se a lista não é nula e se está vazia
+                reminderList.addAll(reminders);
+            }
+            adapter.notifyDataSetChanged();  // Atualizar a RecyclerView
+        });
+    }
+
+    private void observeReminders() {
+        // Observar mudanças nos lembretes e atualizar o RecyclerView
         viewModel.getReminders().observe(getViewLifecycleOwner(), reminders -> {
             reminderList.clear();
-            if (reminders != null && !reminders.isEmpty()) {
-                reminderList.addAll(reminders);  // Usa addAll para adicionar todos os lembretes
-            } else {
-                reminderList.add(new Reminder("Nenhum lembrete.", System.currentTimeMillis(), "Normal", 0));
+            if (reminders != null && !reminders.isEmpty()) {  // Certifique-se de que `reminders` não é nulo
+                reminderList.addAll(reminders);
             }
-            adapter.notifyDataSetChanged();  // Atualiza a RecyclerView
-        });
-    }
-
-
-    private void setupObservers() {
-        // Observando as mudanças no LiveData de lembretes
-        viewModel.getReminders().observe(getViewLifecycleOwner(), new Observer<List<Reminder>>() {
-            @Override
-            public void onChanged(List<Reminder> reminders) {
-                reminderList.clear();
-                if (reminders.isEmpty()) {
-                    reminderList.add(new Reminder("Nenhum lembrete.", System.currentTimeMillis(), "Normal", 0));
-                } else {
-                    reminderList.addAll(reminders);
-                }
-                adapter.notifyDataSetChanged(); // Atualizar a RecyclerView com os novos dados
-            }
+            adapter.notifyDataSetChanged();  // Atualizar RecyclerView
         });
     }
 
     private void showAddReminderDialog(int year, int month, int dayOfMonth) {
-        // Mostrar o diálogo para adicionar lembretes
         ReminderDialogFragment dialogFragment = ReminderDialogFragment.newInstance(year, month, dayOfMonth);
         dialogFragment.show(getParentFragmentManager(), "ReminderDialog");
-    }
-    private void requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(getActivity(),
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
-            }
-        }
     }
 
     @Override
@@ -155,12 +141,12 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
             return;
         }
 
-        // Salvar o lembrete e recarregar a lista de lembretes para o dia
+        // Salvar o lembrete e recarregar os lembretes da data
         Reminder reminder = new Reminder(reminderText, System.currentTimeMillis(), priority, 0);
         viewModel.saveReminder(year, month, dayOfMonth, reminder, getContext());
 
         Toast.makeText(getContext(), "Lembrete adicionado!", Toast.LENGTH_SHORT).show();
-        loadReminders(year, month, dayOfMonth);  // Recarregar a lista de lembretes após salvar
+        loadRemindersForSelectedDate();  // Recarregar a lista de lembretes após salvar
     }
 
     private void setAlarm(Reminder reminder) {

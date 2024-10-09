@@ -3,7 +3,10 @@ package com.example.myapplication.ui.reflow;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.UUID;
+
 public class Reminder {
+    private String id; // Add unique ID for each reminder
     private String text;
     private long timeInMillis;
     private String priority;
@@ -11,6 +14,7 @@ public class Reminder {
 
     // Construtor
     public Reminder(String text, long timeInMillis, String priority, long repeatInterval) {
+        this.id = UUID.randomUUID().toString(); // Generate a unique ID
         this.text = text;
         this.timeInMillis = timeInMillis;
         this.priority = priority;
@@ -19,10 +23,20 @@ public class Reminder {
 
     // Constructor from JSONObject
     public Reminder(JSONObject jsonObject) throws JSONException {
+        this.id = jsonObject.optString("id", UUID.randomUUID().toString()); // Ensure backward compatibility
         this.text = jsonObject.getString("text");
         this.timeInMillis = jsonObject.getLong("timeInMillis");
         this.priority = jsonObject.getString("priority");
         this.repeatInterval = jsonObject.optLong("repeatInterval", 0);  // Default to 0 if not present
+    }
+
+    // Getter for ID
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     // Getter for reminder text
@@ -49,6 +63,7 @@ public class Reminder {
     public JSONObject toJson() {
         JSONObject jsonObject = new JSONObject();
         try {
+            jsonObject.put("id", id); // Save the unique ID
             jsonObject.put("text", text);
             jsonObject.put("timeInMillis", timeInMillis);
             jsonObject.put("priority", priority);

@@ -16,37 +16,36 @@ import java.util.List;
 public class ReflowViewModel extends ViewModel {
 
     private final MutableLiveData<List<Reminder>> reminders = new MutableLiveData<>();
-    static final String PREFS_NAME = "Reminders";  // Nome do arquivo SharedPreferences
-
-    public String getPrefsName() {
-        return PREFS_NAME;
-    }
+    static final String PREFS_NAME = "Reminders";
 
     public LiveData<List<Reminder>> getReminders() {
         return reminders;
     }
 
-    public void loadReminders(int year, int month, int dayOfMonth, Context context) {
+    public LiveData<List<Reminder>> loadReminders(int year, int month, int dayOfMonth, Context context) {
         new Thread(() -> {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             String dateKey = String.format("%d_%d_%d", year, month, dayOfMonth);
-            String reminderData = prefs.getString(dateKey, null);
+            String reminderData = prefs.getString(dateKey, "[]");
 
             List<Reminder> reminderList = new ArrayList<>();
-            if (reminderData != null) {
-                try {
-                    JSONArray jsonArray = new JSONArray(reminderData);
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        reminderList.add(Reminder.fromJson(jsonArray.getJSONObject(i)));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
+            try {
+                JSONArray jsonArray = new JSONArray(reminderData);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    reminderList.add(Reminder.fromJson(jsonArray.getJSONObject(i)));
                 }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-            reminders.postValue(reminderList);
+
+            reminders.postValue(reminderList); // Notificar os observadores
         }).start();
+
+        return reminders;  // Retornar LiveData contendo os lembretes
     }
 
+
+    // Salvar lembrete
     public void saveReminder(int year, int month, int dayOfMonth, Reminder reminder, Context context) {
         new Thread(() -> {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -59,8 +58,9 @@ public class ReflowViewModel extends ViewModel {
                 for (int i = 0; i < jsonArray.length(); i++) {
                     reminderList.add(Reminder.fromJson(jsonArray.getJSONObject(i)));
                 }
-                reminderList.add(reminder);
+                reminderList.add(reminder);  // Adicionar o novo lembrete
 
+                // Salvar os lembretes atualizados
                 JSONArray newJsonArray = new JSONArray();
                 for (Reminder rem : reminderList) {
                     newJsonArray.put(rem.toJson());
@@ -73,7 +73,39 @@ public class ReflowViewModel extends ViewModel {
         }).start();
     }
 
-    // Deletar um lembrete específico
+    // Atualizar um lembrete
+    public void updateReminder(int year, int month, int dayOfMonth, Reminder updatedReminder, Context context) {
+        new Thread(() -> {
+            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            String dateKey = String.format("%d_%d_%d", year, month, dayOfMonth);
+            String reminderData = prefs.getString(dateKey, "[]");
+
+            try {
+                JSONArray jsonArray = new JSONArray(reminderData);
+                List<Reminder> reminderList = new ArrayList<>();
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    Reminder reminder = Reminder.fromJson(jsonArray.getJSONObject(i));
+                    if (reminder.getId().equals(updatedReminder.getId())) {
+                        reminderList.add(updatedReminder);  // Substituir o lembrete existente
+                    } else {
+                        reminderList.add(reminder);
+                    }
+                }
+
+                // Salvar os lembretes atualizados
+                JSONArray updatedArray = new JSONArray();
+                for (Reminder rem : reminderList) {
+                    updatedArray.put(rem.toJson());
+                }
+                prefs.edit().putString(dateKey, updatedArray.toString()).apply();
+                reminders.postValue(reminderList);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    // Excluir um lembrete
     public void deleteReminder(int year, int month, int dayOfMonth, Reminder reminder, Context context) {
         new Thread(() -> {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -84,21 +116,19 @@ public class ReflowViewModel extends ViewModel {
             try {
                 JSONArray jsonArray = new JSONArray(reminderData);
                 for (int i = 0; i < jsonArray.length(); i++) {
-                    reminderList.add(Reminder.fromJson(jsonArray.getJSONObject(i)));
+                    Reminder existingReminder = Reminder.fromJson(jsonArray.getJSONObject(i));
+                    if (!existingReminder.getId().equals(reminder.getId())) {
+                        reminderList.add(existingReminder);  // Manter apenas os lembretes que não foram deletados
+                    }
                 }
 
-                // Remover o lembrete específico da lista
-                reminderList.removeIf(r -> r.equals(reminder));
-
-                // Criar um novo JSONArray após remover o lembrete
+                // Salvar os lembretes atualizados
                 JSONArray newJsonArray = new JSONArray();
                 for (Reminder rem : reminderList) {
                     newJsonArray.put(rem.toJson());
                 }
 
                 prefs.edit().putString(dateKey, newJsonArray.toString()).apply();
-
-                // Atualiza a lista de lembretes no LiveData
                 reminders.postValue(reminderList);
             } catch (JSONException e) {
                 e.printStackTrace();

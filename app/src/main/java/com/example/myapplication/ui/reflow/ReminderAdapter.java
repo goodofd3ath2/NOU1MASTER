@@ -60,13 +60,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         } else {
             holder.reminderRepeat.setVisibility(View.GONE);
         }
-
-        // Ações ao clicar ou segurar o item
-        holder.itemView.setOnClickListener(v -> listener.onEdit(position, reminder));
-        holder.itemView.setOnLongClickListener(v -> {
-            listener.onDelete(position, reminder);
-            return true;
-        });
     }
 
     @Override
@@ -74,14 +67,15 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         return reminderList.size();
     }
 
+    // Remove um lembrete e atualiza o RecyclerView
     public void removeReminder(int position) {
         if (position >= 0 && position < reminderList.size()) {
             reminderList.remove(position);
             notifyItemRemoved(position);
         }
-
     }
-        // Atualizar a lista completa de lembretes
+
+    // Atualizar a lista completa de lembretes
     public void updateData(List<Reminder> newReminders) {
         this.reminderList = newReminders;
         notifyDataSetChanged();
@@ -92,8 +86,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         this.reminderList.add(reminder);
         notifyItemInserted(reminderList.size() - 1);
     }
-
-
 
     // Lógica para o label de repetição (diário/semanal)
     private String getRepeatLabel(long repeatInterval) {
