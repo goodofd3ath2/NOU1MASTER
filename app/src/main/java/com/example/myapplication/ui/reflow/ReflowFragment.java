@@ -64,27 +64,26 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
         calendarView = root.findViewById(R.id.calendarView1);
         reminderRecyclerView = root.findViewById(R.id.reminderRecyclerView);
 
-        Button addReminderButton = root.findViewById(R.id.addReminderButton);
-        addReminderButton.setOnClickListener(v -> showAddReminderDialog(selectedYear, selectedMonth, selectedDayOfMonth));
+        // Configuração do botão para adicionar lembretes
+        root.findViewById(R.id.addReminderButton).setOnClickListener(v -> showAddReminderDialog(selectedYear, selectedMonth, selectedDayOfMonth));
     }
 
     private void setupRecyclerView() {
-        // Configuração do RecyclerView com adaptador e layout manager
+        // Configuração do RecyclerView
         reminderRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new ReminderAdapter(reminderList, new ReminderAdapter.OnReminderClickListener() {
             @Override
             public void onEdit(int position, Reminder reminder) {
-                // Lógica de edição de lembrete
+                // Editar o lembrete
                 EditReminderDialogFragment dialogFragment = EditReminderDialogFragment.newInstance(reminder.getText());
                 dialogFragment.show(getParentFragmentManager(), "EditReminderDialog");
             }
 
             @Override
             public void onDelete(int position, Reminder reminder) {
-                // Lógica de exclusão de lembrete
-                Toast.makeText(getContext(), "Deletando: " + reminder.getText(), Toast.LENGTH_SHORT).show();
+                // Excluir o lembrete
                 viewModel.deleteReminder(selectedYear, selectedMonth, selectedDayOfMonth, reminder, getContext());
-                adapter.removeReminder(position); // Remove o lembrete e notifica o adaptador
+                adapter.removeReminder(position);  // Atualizar a RecyclerView após exclusão
             }
         });
         reminderRecyclerView.setAdapter(adapter);
@@ -96,14 +95,27 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
             selectedYear = year;
             selectedMonth = month;
             selectedDayOfMonth = dayOfMonth;
+
+            // Carrega os lembretes da data selecionada
             loadReminders(year, month, dayOfMonth);
         });
     }
-
     private void loadReminders(int year, int month, int dayOfMonth) {
         // Carregar lembretes da data selecionada
         viewModel.loadReminders(year, month, dayOfMonth, getContext());
+
+        // Observa as mudanças no LiveData
+        viewModel.getReminders().observe(getViewLifecycleOwner(), reminders -> {
+            reminderList.clear();
+            if (reminders != null && !reminders.isEmpty()) {
+                reminderList.addAll(reminders);  // Usa addAll para adicionar todos os lembretes
+            } else {
+                reminderList.add(new Reminder("Nenhum lembrete.", System.currentTimeMillis(), "Normal", 0));
+            }
+            adapter.notifyDataSetChanged();  // Atualiza a RecyclerView
+        });
     }
+
 
     private void setupObservers() {
         // Observando as mudanças no LiveData de lembretes
@@ -122,11 +134,10 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
     }
 
     private void showAddReminderDialog(int year, int month, int dayOfMonth) {
-        // Mostrar diálogo de adição de lembrete
+        // Mostrar o diálogo para adicionar lembretes
         ReminderDialogFragment dialogFragment = ReminderDialogFragment.newInstance(year, month, dayOfMonth);
         dialogFragment.show(getParentFragmentManager(), "ReminderDialog");
     }
-
     private void requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.POST_NOTIFICATIONS)
@@ -144,16 +155,12 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
             return;
         }
 
-        // Criar e salvar lembrete
+        // Salvar o lembrete e recarregar a lista de lembretes para o dia
         Reminder reminder = new Reminder(reminderText, System.currentTimeMillis(), priority, 0);
         viewModel.saveReminder(year, month, dayOfMonth, reminder, getContext());
 
-        if (notify) {
-            setAlarm(reminder);
-        }
-
         Toast.makeText(getContext(), "Lembrete adicionado!", Toast.LENGTH_SHORT).show();
-        loadReminders(year, month, dayOfMonth);
+        loadReminders(year, month, dayOfMonth);  // Recarregar a lista de lembretes após salvar
     }
 
     private void setAlarm(Reminder reminder) {

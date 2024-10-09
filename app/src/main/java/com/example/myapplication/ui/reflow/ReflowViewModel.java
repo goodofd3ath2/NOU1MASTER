@@ -26,7 +26,6 @@ public class ReflowViewModel extends ViewModel {
         return reminders;
     }
 
-    // Carregar lembretes com base na data (ano, mês, dia) e contexto
     public void loadReminders(int year, int month, int dayOfMonth, Context context) {
         new Thread(() -> {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -44,11 +43,10 @@ public class ReflowViewModel extends ViewModel {
                     e.printStackTrace();
                 }
             }
-            reminders.postValue(reminderList);  // Atualiza a lista de lembretes com base no dia selecionado
+            reminders.postValue(reminderList);
         }).start();
     }
 
-    // Salvar lembretes no SharedPreferences
     public void saveReminder(int year, int month, int dayOfMonth, Reminder reminder, Context context) {
         new Thread(() -> {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -63,7 +61,6 @@ public class ReflowViewModel extends ViewModel {
                 }
                 reminderList.add(reminder);
 
-                // Criar um novo JSONArray para salvar todos os lembretes
                 JSONArray newJsonArray = new JSONArray();
                 for (Reminder rem : reminderList) {
                     newJsonArray.put(rem.toJson());

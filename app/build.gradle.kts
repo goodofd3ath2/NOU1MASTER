@@ -70,5 +70,9 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    implementation ("androidx.lifecycle:lifecycle-viewmodel:2.4.0")
+    implementation ("androidx.lifecycle:lifecycle-livedata:2.4.0")
+
 }
 
