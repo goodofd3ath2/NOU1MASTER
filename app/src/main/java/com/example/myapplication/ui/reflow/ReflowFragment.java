@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CalendarView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,6 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,98 +35,95 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
 
     private FragmentReflowBinding binding;
     private CalendarView calendarView;
-    private TextView reminderTextView;
     private RecyclerView reminderRecyclerView;
     private ReminderAdapter adapter;
     private ReflowViewModel viewModel;
 
     private int selectedYear, selectedMonth, selectedDayOfMonth;
+    private List<Reminder> reminderList = new ArrayList<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentReflowBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
+        // Obter o ViewModel
         viewModel = new ViewModelProvider(this).get(ReflowViewModel.class);
 
+        // Inicializar views e configurar componentes
         initializeViews(root);
         setupRecyclerView();
         setupCalendarView();
-        setupObservers();
+        setupObservers(); // Configurar observadores para LiveData
         requestNotificationPermission();
+
         return root;
     }
 
     private void initializeViews(View root) {
         calendarView = root.findViewById(R.id.calendarView1);
-        reminderTextView = root.findViewById(R.id.reminderTextView);
         reminderRecyclerView = root.findViewById(R.id.reminderRecyclerView);
 
-        Button toggleCalendarButton = root.findViewById(R.id.toggleCalendarButton);
-        toggleCalendarButton.setOnClickListener(v -> toggleCalendarView());
-
-        binding.addReminderButton.setOnClickListener(v -> showAddReminderDialog(selectedYear, selectedMonth, selectedDayOfMonth));
+        Button addReminderButton = root.findViewById(R.id.addReminderButton);
+        addReminderButton.setOnClickListener(v -> showAddReminderDialog(selectedYear, selectedMonth, selectedDayOfMonth));
     }
 
     private void setupRecyclerView() {
+        // Configuração do RecyclerView com adaptador e layout manager
         reminderRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        List<Reminder> reminderList = new ArrayList<>();
-
         adapter = new ReminderAdapter(reminderList, new ReminderAdapter.OnReminderClickListener() {
             @Override
             public void onEdit(int position, Reminder reminder) {
-                // Lógica de edição
+                // Lógica de edição de lembrete
                 EditReminderDialogFragment dialogFragment = EditReminderDialogFragment.newInstance(reminder.getText());
                 dialogFragment.show(getParentFragmentManager(), "EditReminderDialog");
             }
 
             @Override
             public void onDelete(int position, Reminder reminder) {
-                // Lógica de exclusão
+                // Lógica de exclusão de lembrete
                 Toast.makeText(getContext(), "Deletando: " + reminder.getText(), Toast.LENGTH_SHORT).show();
                 viewModel.deleteReminder(selectedYear, selectedMonth, selectedDayOfMonth, reminder, getContext());
+                adapter.removeReminder(position); // Remove o lembrete e notifica o adaptador
             }
         });
-
-
         reminderRecyclerView.setAdapter(adapter);
     }
 
-    private void setupObservers() {
-        viewModel.getReminders().observe(getViewLifecycleOwner(), reminders -> {
-            if (reminders.isEmpty()) {
-                adapter.updateData(new ArrayList<>());
-                adapter.addReminder(new Reminder("Nenhum lembrete.", System.currentTimeMillis(), "Normal", 0));
-            } else {
-                adapter.updateData(reminders);
-            }
-        });
-    }
-
     private void setupCalendarView() {
+        // Listener para alteração de data no CalendarView
         calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
             selectedYear = year;
             selectedMonth = month;
             selectedDayOfMonth = dayOfMonth;
-            updateReminderTextView(year, month, dayOfMonth);
             loadReminders(year, month, dayOfMonth);
         });
     }
 
     private void loadReminders(int year, int month, int dayOfMonth) {
+        // Carregar lembretes da data selecionada
         viewModel.loadReminders(year, month, dayOfMonth, getContext());
     }
 
-    private void updateReminderTextView(int year, int month, int dayOfMonth) {
-        reminderTextView.setText(String.format("Lembretes para %d/%d/%d", dayOfMonth, month + 1, year));
-        loadReminders(year, month, dayOfMonth);
-    }
-
-    private void toggleCalendarView() {
-        calendarView.setVisibility(calendarView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+    private void setupObservers() {
+        // Observando as mudanças no LiveData de lembretes
+        viewModel.getReminders().observe(getViewLifecycleOwner(), new Observer<List<Reminder>>() {
+            @Override
+            public void onChanged(List<Reminder> reminders) {
+                reminderList.clear();
+                if (reminders.isEmpty()) {
+                    reminderList.add(new Reminder("Nenhum lembrete.", System.currentTimeMillis(), "Normal", 0));
+                } else {
+                    reminderList.addAll(reminders);
+                }
+                adapter.notifyDataSetChanged(); // Atualizar a RecyclerView com os novos dados
+            }
+        });
     }
 
     private void showAddReminderDialog(int year, int month, int dayOfMonth) {
-        ReminderDialogFragment dialogFragment = new ReminderDialogFragment(year, month, dayOfMonth);
+        // Mostrar diálogo de adição de lembrete
+        ReminderDialogFragment dialogFragment = ReminderDialogFragment.newInstance(year, month, dayOfMonth);
         dialogFragment.show(getParentFragmentManager(), "ReminderDialog");
     }
 
@@ -147,23 +144,20 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
             return;
         }
 
-        // Converter prioridade para o tipo String ("Importante" ou "Normal")
-        String priorityValue = "Importante".equals(priority) ? "Importante" : "Normal"; // 1 para importante, 0 para normal
-
-        // Criar o objeto Reminder com os parâmetros corretos
-        Reminder reminderObj = new Reminder(reminderText, System.currentTimeMillis(), priorityValue, 0);
-        viewModel.saveReminder(year, month, dayOfMonth, reminderObj, getContext());
+        // Criar e salvar lembrete
+        Reminder reminder = new Reminder(reminderText, System.currentTimeMillis(), priority, 0);
+        viewModel.saveReminder(year, month, dayOfMonth, reminder, getContext());
 
         if (notify) {
-            setAlarm(reminderObj);
+            setAlarm(reminder);
         }
 
         Toast.makeText(getContext(), "Lembrete adicionado!", Toast.LENGTH_SHORT).show();
-        updateReminderTextView(year, month, dayOfMonth);
+        loadReminders(year, month, dayOfMonth);
     }
 
-
     private void setAlarm(Reminder reminder) {
+        // Configurar alarme para o lembrete
         AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(getContext(), AlarmReceiver.class);
         intent.putExtra("reminderText", reminder.getText());
@@ -177,15 +171,7 @@ public class ReflowFragment extends Fragment implements ReminderDialogFragment.O
             }
         }
 
-        try {
-            if (reminder.getRepeatInterval() > 0) {
-                alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, reminder.getTimeInMillis(), reminder.getRepeatInterval(), pendingIntent);
-            } else {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminder.getTimeInMillis(), pendingIntent);
-            }
-        } catch (SecurityException e) {
-            Toast.makeText(getContext(), "Erro ao configurar o alarme: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminder.getTimeInMillis(), pendingIntent);
     }
 
     @Override

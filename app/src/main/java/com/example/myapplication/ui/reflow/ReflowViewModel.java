@@ -16,7 +16,7 @@ import java.util.List;
 public class ReflowViewModel extends ViewModel {
 
     private final MutableLiveData<List<Reminder>> reminders = new MutableLiveData<>();
-    static final String PREFS_NAME = "Reminders";
+    static final String PREFS_NAME = "Reminders";  // Nome do arquivo SharedPreferences
 
     public String getPrefsName() {
         return PREFS_NAME;
@@ -44,7 +44,7 @@ public class ReflowViewModel extends ViewModel {
                     e.printStackTrace();
                 }
             }
-            reminders.postValue(reminderList);
+            reminders.postValue(reminderList);  // Atualiza a lista de lembretes com base no dia selecionado
         }).start();
     }
 
@@ -91,7 +91,7 @@ public class ReflowViewModel extends ViewModel {
                 }
 
                 // Remover o lembrete específico da lista
-                reminderList.remove(reminder);
+                reminderList.removeIf(r -> r.equals(reminder));
 
                 // Criar um novo JSONArray após remover o lembrete
                 JSONArray newJsonArray = new JSONArray();

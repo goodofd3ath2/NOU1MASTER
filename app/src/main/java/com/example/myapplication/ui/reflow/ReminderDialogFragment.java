@@ -14,6 +14,7 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
@@ -21,17 +22,37 @@ import com.example.myapplication.R;
 
 public class ReminderDialogFragment extends DialogFragment {
 
-    private OnReminderSavedListener listener;
+    private static final String ARG_YEAR = "year";
+    private static final String ARG_MONTH = "month";
+    private static final String ARG_DAY = "day";
+
     private int year, month, dayOfMonth;
+
+    // Declare o listener
+    private OnReminderSavedListener listener;
+
+    public static ReminderDialogFragment newInstance(int year, int month, int dayOfMonth) {
+        ReminderDialogFragment fragment = new ReminderDialogFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_YEAR, year);
+        args.putInt(ARG_MONTH, month);
+        args.putInt(ARG_DAY, dayOfMonth);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            year = getArguments().getInt(ARG_YEAR);
+            month = getArguments().getInt(ARG_MONTH);
+            dayOfMonth = getArguments().getInt(ARG_DAY);
+        }
+    }
 
     public interface OnReminderSavedListener {
         void onReminderSaved(int year, int month, int dayOfMonth, String reminder, boolean notify, String priority);
-    }
-
-    public ReminderDialogFragment(int year, int month, int dayOfMonth) {
-        this.year = year;
-        this.month = month;
-        this.dayOfMonth = dayOfMonth;
     }
 
     @NonNull
@@ -40,6 +61,7 @@ public class ReminderDialogFragment extends DialogFragment {
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.fragment_reminder_dialog, null);
 
+        // Inicializa os componentes do layout
         EditText editTextReminder = view.findViewById(R.id.edit_text_reminder);
         CheckBox checkBoxNotify = view.findViewById(R.id.checkbox_notify);
         RadioGroup radioGroupPriority = view.findViewById(R.id.radio_group_priority);
@@ -47,6 +69,7 @@ public class ReminderDialogFragment extends DialogFragment {
         Button btnSave = view.findViewById(R.id.btn_save);
         Button btnCancel = view.findViewById(R.id.btn_cancel);
 
+        // Configurar o Spinner de repetição
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
                 R.array.repeat_options, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -55,6 +78,7 @@ public class ReminderDialogFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         builder.setView(view);
 
+        // Lógica do botão de salvar
         btnSave.setOnClickListener(v -> {
             String reminderText = editTextReminder.getText().toString();
             boolean notify = checkBoxNotify.isChecked();
@@ -77,6 +101,7 @@ public class ReminderDialogFragment extends DialogFragment {
             dismiss();
         });
 
+        // Lógica do botão de cancelar
         btnCancel.setOnClickListener(v -> dismiss());
 
         return builder.create();
@@ -86,6 +111,7 @@ public class ReminderDialogFragment extends DialogFragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         try {
+            // Inicializa o listener
             listener = (OnReminderSavedListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement OnReminderSavedListener");

@@ -5,48 +5,74 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Campo de texto para o lembrete -->
     <EditText
         android:id="@+id/edit_text_reminder"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Escreva o lembrete" />
+        android:hint="Digite o lembrete"
+        android:inputType="text"
+        android:padding="8dp"
+        android:textSize="16sp" />
 
+    <!-- CheckBox para selecionar se deve notificar -->
     <CheckBox
         android:id="@+id/checkbox_notify"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Receber notificação" />
+        android:text="Notificar" />
 
+    <!-- Grupo de botões de rádio para definir a prioridade -->
     <RadioGroup
         android:id="@+id/radio_group_priority"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingTop="8dp">
 
         <RadioButton
             android:id="@+id/radio_priority_normal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Normal" />
+            android:text="Normal"
+            android:checked="true" />
 
         <RadioButton
             android:id="@+id/radio_priority_important"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Importante" />
-
     </RadioGroup>
 
-    <Button
-        android:id="@+id/btn_save"
+    <!-- Spinner para selecionar a repetição do lembrete -->
+    <Spinner
+        android:id="@+id/repeat_spinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Salvar" />
+        android:prompt="@string/reminder_repeat_prompt"
+        android:entries="@array/repeat_options" />
 
-    <Button
-        android:id="@+id/btn_cancel"
-        android:layout_width="wrap_content"
+
+    <!-- Botões de ação: Salvar e Cancelar -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Cancelar" />
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:paddingTop="16dp">
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Salvar" />
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancelar"
+            android:layout_marginStart="16dp" />
+    </LinearLayout>
 
 </LinearLayout>

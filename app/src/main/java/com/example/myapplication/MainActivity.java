@@ -13,7 +13,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.myapplication.ui.reflow.EditReminderDialogFragment;
-import com.example.myapplication.ui.reflow.ReminderAdapter;
 import com.example.myapplication.ui.reflow.ReminderDialogFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -41,9 +40,7 @@ public class MainActivity extends AppCompatActivity implements
     private AppBarConfiguration mAppBarConfiguration;
     private static final String TAG = "MainActivity";
 
-    private List<String> reminders = new ArrayList<>();
-    private ReminderAdapter adapter;
-    private TextView reminderTextView; // Certifique-se de inicializar este TextView corretamente
+    private TextView reminderTextView;
     private int selectedYear;
     private int selectedMonth;
     private int selectedDayOfMonth;
@@ -85,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements
                 loadReminders();
 
                 // Abrir o diálogo de adição de lembrete para a data
-                ReminderDialogFragment dialog = new ReminderDialogFragment(year, month, dayOfMonth);
+                ReminderDialogFragment dialog = ReminderDialogFragment.newInstance(year, month, dayOfMonth);
                 dialog.show(getSupportFragmentManager(), "ReminderDialog");
             });
         }
@@ -94,13 +91,27 @@ public class MainActivity extends AppCompatActivity implements
         Button editReminderButton = findViewById(R.id.button_edit_reminder);
         if (editReminderButton != null) {
             editReminderButton.setOnClickListener(view -> {
-                // Criar uma instância do diálogo com o lembrete atual
-                String currentReminder = reminderTextView.getText().toString(); // Obter o lembrete atual
+                String currentReminder = reminderTextView.getText().toString();
                 EditReminderDialogFragment dialogFragment = EditReminderDialogFragment.newInstance(currentReminder);
                 dialogFragment.show(getSupportFragmentManager(), "EditReminderDialog");
             });
         } else {
             Log.e(TAG, "Button 'button_edit_reminder' não foi encontrado no layout.");
+        }
+
+        // Configura o botão para adicionar um novo lembrete
+        Button addReminderButton = findViewById(R.id.addReminderButton);
+        if (addReminderButton != null) {
+            addReminderButton.setOnClickListener(v -> {
+                // Define valores padrão para a data
+                int defaultYear = 2024;
+                int defaultMonth = 9;  // Outubro
+                int defaultDayOfMonth = 1;
+
+                // Use o método newInstance para criar o diálogo com a data padrão
+                ReminderDialogFragment dialog = ReminderDialogFragment.newInstance(defaultYear, defaultMonth, defaultDayOfMonth);
+                dialog.show(getSupportFragmentManager(), "ReminderDialog");
+            });
         }
 
         // Configura os componentes de navegação (Drawer, Bottom Navigation, etc.)
@@ -111,12 +122,10 @@ public class MainActivity extends AppCompatActivity implements
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment_content_main);
 
-        // Verifica se o NavHostFragment não é nulo
         if (navHostFragment != null) {
             NavController navController = navHostFragment.getNavController();
             Log.d(TAG, "NavController obtained: " + navController);
 
-            // Configura a navegação do DrawerLayout
             NavigationView navigationView = binding.navView;
             if (navigationView != null) {
                 mAppBarConfiguration = new AppBarConfiguration.Builder(
@@ -126,7 +135,6 @@ public class MainActivity extends AppCompatActivity implements
                 NavigationUI.setupWithNavController(navigationView, navController);
             }
 
-            // Configura o BottomNavigationView
             BottomNavigationView bottomNavigationView = binding.bottomNavView;
             if (bottomNavigationView != null) {
                 NavigationUI.setupWithNavController(bottomNavigationView, navController);
@@ -141,16 +149,13 @@ public class MainActivity extends AppCompatActivity implements
         Log.d(TAG, "Reminder saved for " + dayOfMonth + "/" + (month + 1) + "/" + year + ": " + reminder);
         Toast.makeText(this, "Reminder saved for " + dayOfMonth + "/" + (month + 1) + "/" + year, Toast.LENGTH_LONG).show();
 
-        // Salvar lembrete em SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("reminders", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        String key = year + "-" + (month + 1) + "-" + dayOfMonth; // Chave única para cada data
+        String key = year + "-" + (month + 1) + "-" + dayOfMonth;
 
         if (reminder != null) {
             editor.putString(key, reminder);
             editor.apply();
-
-            // Carregar o lembrete após salvar
             loadReminders();
         } else {
             Log.e(TAG, "Reminder is null, not saving.");
@@ -160,13 +165,13 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressLint("SetTextI18n")
     private void loadReminders() {
         SharedPreferences sharedPreferences = getSharedPreferences("reminders", MODE_PRIVATE);
-        String key = selectedYear + "-" + (selectedMonth + 1) + "-" + selectedDayOfMonth; // Chave correta para a data selecionada
+        String key = selectedYear + "-" + (selectedMonth + 1) + "-" + selectedDayOfMonth;
         String reminder = sharedPreferences.getString(key, null);
 
         if (reminder != null) {
             reminderTextView.setText(reminder);
         } else {
-            reminderTextView.setText(getString(R.string.no_reminder)); // Use resource string instead of hardcoded text
+            reminderTextView.setText(getString(R.string.no_reminder));
         }
     }
 
@@ -174,8 +179,6 @@ public class MainActivity extends AppCompatActivity implements
     public void onReminderUpdated(String updatedReminder) {
         Log.d(TAG, "Updated Reminder: " + updatedReminder);
         Toast.makeText(this, "Reminder updated to: " + updatedReminder, Toast.LENGTH_SHORT).show();
-
-        // Atualizar lembretes exibidos após a edição
         loadReminders();
     }
 

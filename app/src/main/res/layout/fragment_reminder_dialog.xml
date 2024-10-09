@@ -52,7 +52,6 @@
         android:prompt="@string/reminder_repeat_prompt"
         android:entries="@array/repeat_options" />
 
-
     <!-- Botões de ação: Salvar e Cancelar -->
     <LinearLayout
         android:layout_width="match_parent"

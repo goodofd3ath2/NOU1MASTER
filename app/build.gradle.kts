@@ -65,6 +65,7 @@ dependencies {
     // Only include Data Binding directly
     implementation("androidx.databinding:databinding-runtime:8.6.1")
     implementation(libs.drawerlayout)
+    implementation(libs.firebase.crashlytics.buildtools)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
