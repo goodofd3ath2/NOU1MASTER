@@ -2,42 +2,29 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     android:background="?android:attr/selectableItemBackground">
 
+    <!-- Texto do lembrete -->
     <TextView
-        android:id="@+id/reminderTextView"
+        android:id="@+id/reminderText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Lembrete"
         android:textSize="16sp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         android:layout_margin="8dp" />
-    <TextView
-        android:id="@+id/reminderText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Lembrete"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Hora do lembrete -->
     <TextView
         android:id="@+id/reminderTime"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hora do Lembrete"
         android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/reminderText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:layout_marginTop="4dp" />
 
-
+    <!-- Repetição do lembrete (opcional, pode ser escondido inicialmente) -->
     <TextView
         android:id="@+id/reminderRepeat"
         android:layout_width="wrap_content"

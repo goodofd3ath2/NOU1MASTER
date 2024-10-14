@@ -11,14 +11,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.R;
 
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ReminderViewHolder> {
 
     private List<Reminder> reminderList;
     private OnReminderClickListener listener;
 
-    // Interface para os cliques de edição e exclusão
     public interface OnReminderClickListener {
         void onEdit(int position, Reminder reminder);
         void onDelete(int position, Reminder reminder);
@@ -40,16 +42,44 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
     @Override
     public void onBindViewHolder(@NonNull ReminderViewHolder holder, int position) {
         Reminder reminder = reminderList.get(position);
+
+        // Define o texto do lembrete
         holder.reminderText.setText(reminder.getText());
 
-        // Configura os cliques para editar o lembrete
-        holder.itemView.setOnClickListener(v -> listener.onEdit(position, reminder));
+        // Define o horário do lembrete (se houver)
+        holder.reminderTime.setText(formatTime(reminder.getTimeInMillis()));  // Usa um método para formatar a hora do lembrete
 
-        // Configura os cliques longos para excluir o lembrete
+        // Se o lembrete for repetido, exibe o texto de repetição
+        if (reminder.getRepeatInterval() > 0) {
+            holder.reminderRepeat.setVisibility(View.VISIBLE);
+            holder.reminderRepeat.setText(getRepeatLabel(reminder.getRepeatInterval()));
+        } else {
+            holder.reminderRepeat.setVisibility(View.GONE);  // Esconde o campo se não houver repetição
+        }
+
+        // Configura os cliques para editar ou excluir, como já configurado anteriormente
+        holder.itemView.setOnClickListener(v -> listener.onEdit(position, reminder));
         holder.itemView.setOnLongClickListener(v -> {
             listener.onDelete(position, reminder);
             return true;
         });
+    }
+
+    // Método para formatar a hora do lembrete
+    private String formatTime(long timeInMillis) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        return dateFormat.format(new Date(timeInMillis));
+    }
+
+    // Método para determinar o rótulo de repetição
+    private String getRepeatLabel(long repeatInterval) {
+        if (repeatInterval == AlarmManager.INTERVAL_DAY) {
+            return "Diariamente";
+        } else if (repeatInterval == AlarmManager.INTERVAL_DAY * 7) {
+            return "Semanalmente";
+        } else {
+            return "Sem repetição";
+        }
     }
 
     @Override
@@ -57,13 +87,17 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         return reminderList.size();
     }
 
-    // ViewHolder para o RecyclerView
+    // Classe ViewHolder dentro do adaptador
     public static class ReminderViewHolder extends RecyclerView.ViewHolder {
         public TextView reminderText;
+        public TextView reminderTime;
+        public TextView reminderRepeat;
 
         public ReminderViewHolder(@NonNull View itemView) {
             super(itemView);
             reminderText = itemView.findViewById(R.id.reminderText);  // Certifique-se de que o ID está correto no layout
+            reminderTime = itemView.findViewById(R.id.reminderTime);  // Agora o reminderTime está vinculado
+            reminderRepeat = itemView.findViewById(R.id.reminderRepeat);  // Para exibir a repetição, se houver
         }
     }
 
@@ -85,15 +119,5 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
     public void addReminder(Reminder reminder) {
         this.reminderList.add(reminder);
         notifyItemInserted(reminderList.size() - 1);
-    }
-
-    // Lógica para exibir o label de repetição (diário/semanal)
-    private String getRepeatLabel(long repeatInterval) {
-        if (repeatInterval == AlarmManager.INTERVAL_DAY) {
-            return "Diariamente";
-        } else if (repeatInterval == AlarmManager.INTERVAL_DAY * 7) {
-            return "Semanalmente";
-        }
-        return "Sem repetição";
     }
 }

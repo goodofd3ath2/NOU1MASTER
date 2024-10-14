@@ -5,10 +5,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,9 +33,9 @@ public class ReflowFragment extends Fragment {
         // Infla o layout do fragmento
         View rootView = inflater.inflate(R.layout.fragment_reflow, container, false);
 
-        // Inicializa o RecyclerView e o adapter
+        // Inicializa o RecyclerView e o botão de adicionar lembrete
         reminderRecyclerView = rootView.findViewById(R.id.reminderRecyclerView);
-        addReminderButton = rootView.findViewById(R.id.addReminderButton);  // Adiciona o botão para adicionar lembretes
+        addReminderButton = rootView.findViewById(R.id.addReminderButton);
         reminderList = new ArrayList<>();
 
         // Teste de lembrete manual
@@ -58,23 +60,62 @@ public class ReflowFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        // Configura o LayoutManager e o Adapter do RecyclerView
         reminderRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         reminderAdapter = new ReminderAdapter(reminderList, new ReminderAdapter.OnReminderClickListener() {
             @Override
             public void onEdit(int position, Reminder reminder) {
-                // Lógica para editar o lembrete
-                Toast.makeText(getContext(), "Editar lembrete: " + reminder.getText(), Toast.LENGTH_SHORT).show();
+                // Abrir um diálogo para editar o lembrete
+                showEditReminderDialog(position, reminder);
             }
 
             @Override
             public void onDelete(int position, Reminder reminder) {
-                reminderList.remove(position);  // Remove o lembrete da lista
-                reminderAdapter.notifyItemRemoved(position);  // Notifica o RecyclerView que o item foi removido
-                Toast.makeText(getContext(), "Lembrete excluído: " + reminder.getText(), Toast.LENGTH_SHORT).show();
+                // Excluir o lembrete após confirmação
+                showDeleteConfirmationDialog(position, reminder);
             }
         });
-        // Associa o adapter ao RecyclerView
         reminderRecyclerView.setAdapter(reminderAdapter);
+    }
+
+    // Método para mostrar o diálogo de edição de lembrete
+    private void showEditReminderDialog(int position, Reminder reminder) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Editar Lembrete");
+
+        // Adiciona um campo de texto para editar o lembrete
+        final EditText input = new EditText(getContext());
+        input.setText(reminder.getText());
+        builder.setView(input);
+
+        // Botão "Salvar" no diálogo
+        builder.setPositiveButton("Salvar", (dialog, which) -> {
+            String newText = input.getText().toString();
+            reminderList.get(position).setText(newText);
+            reminderAdapter.notifyItemChanged(position);  // Atualiza o item no RecyclerView
+        });
+
+        // Botão "Cancelar" no diálogo
+        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    // Método para mostrar o diálogo de confirmação de exclusão de lembrete
+    private void showDeleteConfirmationDialog(int position, Reminder reminder) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Excluir Lembrete");
+        builder.setMessage("Tem certeza que deseja excluir este lembrete?");
+
+        // Botão "Excluir"
+        builder.setPositiveButton("Excluir", (dialog, which) -> {
+            reminderList.remove(position);
+            reminderAdapter.notifyItemRemoved(position);  // Remove o item do RecyclerView
+            Toast.makeText(getContext(), "Lembrete excluído", Toast.LENGTH_SHORT).show();
+        });
+
+        // Botão "Cancelar"
+        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.cancel());
+
+        builder.show();
     }
 }
