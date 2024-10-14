@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,6 +22,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton;
     private TextView createAccountTextView;
     private LoginViewModel loginViewModel;
+    private CheckBox keepLoggedInCheckBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +35,9 @@ public class LoginActivity extends AppCompatActivity {
         createAccountTextView = findViewById(R.id.createAccountTextView);
 
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+
+        // Inicializar o checkbox
+        keepLoggedInCheckBox = findViewById(R.id.checkbox_keep_logged_in);
 
         loginButton.setOnClickListener(v -> performLogin());
         createAccountTextView.setOnClickListener(v -> {
@@ -60,6 +65,19 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(LoginActivity.this, error, Toast.LENGTH_SHORT).show();
             }
         });
+        // Após o login bem-sucedido
+        boolean isKeepLoggedIn = keepLoggedInCheckBox.isChecked();
+        SharedPreferences preferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("isLoggedIn", true);  // Salva o estado de login
+        editor.putBoolean("keepLoggedIn", isKeepLoggedIn);  // Salva a escolha do "Me manter conectado"
+        editor.apply();
+
+        // Redirecionar para a MainActivity
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();  // Finaliza a LoginActivity
+
     }
 
     private void performLogin() {

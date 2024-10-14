@@ -13,7 +13,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.myapplication.ui.reflow.EditReminderDialogFragment;
+import com.example.myapplication.ui.reflow.Reminder;
 import com.example.myapplication.ui.reflow.ReminderDialogFragment;
+import com.example.myapplication.ui.reflow.ReminderAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
@@ -45,88 +47,172 @@ public class MainActivity extends AppCompatActivity implements
     private int selectedMonth;
     private int selectedDayOfMonth;
 
+    private List<Reminder> reminderList;
+    private int selectedPosition;
+    private ReminderAdapter reminderAdapter;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Usando DataBinding para setar o layout
+        // Inicializar o layout
         ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
-        // Inicializar o TextView corretamente
+        // Inicializar os elementos da interface
         reminderTextView = binding.reminderTextView;
+        CalendarView calendarView = binding.calendarView;
+        RecyclerView reminderListView = binding.reminderRecyclerView;
 
-        // Verifica se o usuário está autenticado
+
+        // Verificar se o usuário selecionou "Me manter conectado"
         SharedPreferences preferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
         boolean isLoggedIn = preferences.getBoolean("isLoggedIn", false);
+        boolean keepLoggedIn = preferences.getBoolean("keepLoggedIn", false);
 
-        if (!isLoggedIn) {
+        // Se o usuário não estiver logado e não escolheu "Me manter conectado", redireciona para o login
+        if (!isLoggedIn && !keepLoggedIn) {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
             return;
         }
 
-        // Inicializa o CalendarView e RecyclerView
-        CalendarView calendarView = binding.calendarView;
-        RecyclerView reminderListView = binding.reminderList;
-        reminderListView.setLayoutManager(new LinearLayoutManager(this));
+        // Configurar o RecyclerView
+        reminderList = new ArrayList<>();
+        reminderAdapter = new ReminderAdapter(reminderList, new ReminderAdapter.OnReminderClickListener() {
+            @Override
+            public void onEdit(int position, Reminder reminder) {
+                // Abertura do diálogo de edição
+                selectedPosition = position;
+                EditReminderDialogFragment dialog = EditReminderDialogFragment.newInstance(reminder.getText());
+                dialog.show(getSupportFragmentManager(), "EditReminderDialog");
+            }
+            @Override
+            public void onDelete(int position, Reminder reminder) {
+                // Remoção do lembrete
+                reminderList.remove(position);
+                reminderAdapter.notifyItemRemoved(position);
+            }
+        });
 
-        // Configura o listener para a seleção de data
+
+        RecyclerView recyclerView = binding.reminderRecyclerView;
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(reminderAdapter);
+
+        // Carregar lembretes para o dia selecionado
+        loadReminders();
+
+        reminderListView.setLayoutManager(new LinearLayoutManager(this));
+        reminderListView.setAdapter(reminderAdapter);
+
+        // Listener de seleção de data no CalendarView
         if (calendarView != null) {
             calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
                 selectedYear = year;
                 selectedMonth = month;
                 selectedDayOfMonth = dayOfMonth;
 
-                // Carrega lembretes da data selecionada
+                // Carregar lembretes da data selecionada
                 loadReminders();
-
-                // Abrir o diálogo de adição de lembrete para a data
-                ReminderDialogFragment dialog = ReminderDialogFragment.newInstance(year, month, dayOfMonth);
-                dialog.show(getSupportFragmentManager(), "ReminderDialog");
             });
         }
 
-        // Configura o botão para editar lembrete
-        Button editReminderButton = findViewById(R.id.button_edit_reminder);
-        if (editReminderButton != null) {
-            editReminderButton.setOnClickListener(view -> {
-                String currentReminder = reminderTextView.getText().toString();
-                EditReminderDialogFragment dialogFragment = EditReminderDialogFragment.newInstance(currentReminder);
-                dialogFragment.show(getSupportFragmentManager(), "EditReminderDialog");
-            });
-        } else {
-            Log.e(TAG, "Button 'button_edit_reminder' não foi encontrado no layout.");
-        }
-
-        // Configura o botão para adicionar um novo lembrete
+        // Botão para adicionar lembretes
         Button addReminderButton = findViewById(R.id.addReminderButton);
         if (addReminderButton != null) {
             addReminderButton.setOnClickListener(v -> {
-                // Define valores padrão para a data
-                int defaultYear = 2024;
-                int defaultMonth = 9;  // Outubro
-                int defaultDayOfMonth = 1;
-
-                // Use o método newInstance para criar o diálogo com a data padrão
-                ReminderDialogFragment dialog = ReminderDialogFragment.newInstance(defaultYear, defaultMonth, defaultDayOfMonth);
+                ReminderDialogFragment dialog = ReminderDialogFragment.newInstance(selectedYear, selectedMonth, selectedDayOfMonth);
                 dialog.show(getSupportFragmentManager(), "ReminderDialog");
             });
         }
 
-        // Configura os componentes de navegação (Drawer, Bottom Navigation, etc.)
+        // Configurar navegação
         setupNavigationComponents(binding);
+
+        // Carregar lembretes iniciais (se houver)
+        loadReminders();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.overflow, menu);  // Inflando o menu de opções
+        return true;
+    }
+
+
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_logout) {
+            logout();  // Chama o método de logout
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void logout() {
+        // Lógica de logout
+        SharedPreferences preferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("isLoggedIn", false);
+        editor.apply();
+
+        // Redireciona para a tela de login
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();  // Finaliza a MainActivity para que o usuário não possa voltar sem fazer login
+    }
+
+
+
+    @Override
+    public void onEdit(int position, Reminder reminder) {
+        // Salvar a posição do lembrete clicado
+        selectedPosition = position;
+
+        // Criar uma instância do EditReminderDialogFragment, passando o texto do lembrete como argumento
+        EditReminderDialogFragment dialog = EditReminderDialogFragment.newInstance(reminder.getText());
+
+        // Mostrar o fragmento de diálogo de edição
+        dialog.show(getSupportFragmentManager(), "EditReminderDialog");
+    }
+
+
+    @SuppressLint("NotifyDataSetChanged")
+    private void loadReminders() {
+        // Limpa a lista antes de carregar os lembretes
+        reminderList.clear();
+
+        // Exemplo de carregamento de lembretes usando SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("reminders", MODE_PRIVATE);
+        String key = selectedYear + "-" + (selectedMonth + 1) + "-" + selectedDayOfMonth;
+        String reminderText = sharedPreferences.getString(key, null);
+
+        if (reminderText != null) {
+            Reminder reminder = new Reminder(reminderText, System.currentTimeMillis(), "Normal", 0);
+            reminderList.add(reminder);
+        }
+
+        // Notifica o adaptador sobre as mudanças na lista
+        reminderAdapter.notifyDataSetChanged();
+    }
+
+    // Métodos auxiliares de navegação
     private void setupNavigationComponents(ActivityMainBinding binding) {
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment_content_main);
 
         if (navHostFragment != null) {
             NavController navController = navHostFragment.getNavController();
-            Log.d(TAG, "NavController obtained: " + navController);
 
             NavigationView navigationView = binding.navView;
+            BottomNavigationView bottomNavigationView = binding.bottomNavView;
+
             if (navigationView != null) {
                 mAppBarConfiguration = new AppBarConfiguration.Builder(
                         R.id.nav_transform, R.id.nav_reflow, R.id.nav_slideshow, R.id.nav_settings)
@@ -135,20 +221,17 @@ public class MainActivity extends AppCompatActivity implements
                 NavigationUI.setupWithNavController(navigationView, navController);
             }
 
-            BottomNavigationView bottomNavigationView = binding.bottomNavView;
             if (bottomNavigationView != null) {
                 NavigationUI.setupWithNavController(bottomNavigationView, navController);
             }
         } else {
-            Toast.makeText(this, "NavHostFragment not found!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "NavHostFragment não encontrado!", Toast.LENGTH_SHORT).show();
         }
     }
 
+    // Salvar lembretes
     @Override
     public void onReminderSaved(int year, int month, int dayOfMonth, String reminder, boolean notify, String priority) {
-        Log.d(TAG, "Reminder saved for " + dayOfMonth + "/" + (month + 1) + "/" + year + ": " + reminder);
-        Toast.makeText(this, "Reminder saved for " + dayOfMonth + "/" + (month + 1) + "/" + year, Toast.LENGTH_LONG).show();
-
         SharedPreferences sharedPreferences = getSharedPreferences("reminders", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         String key = year + "-" + (month + 1) + "-" + dayOfMonth;
@@ -158,51 +241,24 @@ public class MainActivity extends AppCompatActivity implements
             editor.apply();
             loadReminders();
         } else {
-            Log.e(TAG, "Reminder is null, not saving.");
-        }
-    }
-
-    @SuppressLint("SetTextI18n")
-    private void loadReminders() {
-        SharedPreferences sharedPreferences = getSharedPreferences("reminders", MODE_PRIVATE);
-        String key = selectedYear + "-" + (selectedMonth + 1) + "-" + selectedDayOfMonth;
-        String reminder = sharedPreferences.getString(key, null);
-
-        if (reminder != null) {
-            reminderTextView.setText(reminder);
-        } else {
-            reminderTextView.setText(getString(R.string.no_reminder));
+            Log.e(TAG, "Lembrete é nulo, não pode ser salvo.");
         }
     }
 
     @Override
-    public void onReminderUpdated(String updatedReminder) {
-        Log.d(TAG, "Updated Reminder: " + updatedReminder);
-        Toast.makeText(this, "Reminder updated to: " + updatedReminder, Toast.LENGTH_SHORT).show();
-        loadReminders();
+    public void onReminderUpdated(String updatedReminderText) {
+
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.overflow, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-
-        if (item.getItemId() == R.id.nav_settings) {
-            navController.navigate(R.id.nav_settings);
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     public boolean onSupportNavigateUp() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration) || super.onSupportNavigateUp();
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
     }
 }

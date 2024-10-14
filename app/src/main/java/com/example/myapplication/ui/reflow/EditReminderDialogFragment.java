@@ -17,6 +17,8 @@ public class EditReminderDialogFragment extends DialogFragment {
     private EditReminderDialogListener listener;
 
     public interface EditReminderDialogListener {
+        void onEdit(int position, Reminder reminder);
+
         void onReminderUpdated(String updatedReminder);
     }
 

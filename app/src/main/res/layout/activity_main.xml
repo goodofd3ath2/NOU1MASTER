@@ -85,6 +85,11 @@
                 android:layout_height="wrap_content"
                 android:text="No reminders yet." />
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/reminderRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
 
         </LinearLayout>
 

@@ -5,12 +5,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.myapplication.R;
 
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.List;
 
 public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ReminderViewHolder> {
@@ -18,11 +18,13 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
     private List<Reminder> reminderList;
     private OnReminderClickListener listener;
 
+    // Interface para os cliques de edição e exclusão
     public interface OnReminderClickListener {
         void onEdit(int position, Reminder reminder);
         void onDelete(int position, Reminder reminder);
     }
 
+    // Construtor do adaptador
     public ReminderAdapter(List<Reminder> reminderList, OnReminderClickListener listener) {
         this.reminderList = reminderList;
         this.listener = listener;
@@ -40,31 +42,29 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         Reminder reminder = reminderList.get(position);
         holder.reminderText.setText(reminder.getText());
 
-        Date date = new Date(reminder.getTimeInMillis());
-        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-        holder.reminderTime.setText(dateFormat.format(date));
-
-        // Clique para editar o lembrete
+        // Configura os cliques para editar o lembrete
         holder.itemView.setOnClickListener(v -> listener.onEdit(position, reminder));
 
-        // Long click para excluir o lembrete
+        // Configura os cliques longos para excluir o lembrete
         holder.itemView.setOnLongClickListener(v -> {
             listener.onDelete(position, reminder);
             return true;
         });
-
-        // Lógica para mostrar repetição se houver
-        if (reminder.getRepeatInterval() > 0) {
-            holder.reminderRepeat.setVisibility(View.VISIBLE);
-            holder.reminderRepeat.setText(holder.itemView.getContext().getString(R.string.repeat_label, getRepeatLabel(reminder.getRepeatInterval())));
-        } else {
-            holder.reminderRepeat.setVisibility(View.GONE);
-        }
     }
 
     @Override
     public int getItemCount() {
         return reminderList.size();
+    }
+
+    // ViewHolder para o RecyclerView
+    public static class ReminderViewHolder extends RecyclerView.ViewHolder {
+        public TextView reminderText;
+
+        public ReminderViewHolder(@NonNull View itemView) {
+            super(itemView);
+            reminderText = itemView.findViewById(R.id.reminderText);  // Certifique-se de que o ID está correto no layout
+        }
     }
 
     // Remove um lembrete e atualiza o RecyclerView
@@ -87,7 +87,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         notifyItemInserted(reminderList.size() - 1);
     }
 
-    // Lógica para o label de repetição (diário/semanal)
+    // Lógica para exibir o label de repetição (diário/semanal)
     private String getRepeatLabel(long repeatInterval) {
         if (repeatInterval == AlarmManager.INTERVAL_DAY) {
             return "Diariamente";
@@ -95,17 +95,5 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
             return "Semanalmente";
         }
         return "Sem repetição";
-    }
-
-    // Classe ViewHolder para vincular os dados do lembrete à interface
-    public static class ReminderViewHolder extends RecyclerView.ViewHolder {
-        TextView reminderText, reminderTime, reminderRepeat;
-
-        public ReminderViewHolder(@NonNull View itemView) {
-            super(itemView);
-            reminderText = itemView.findViewById(R.id.reminderText);
-            reminderTime = itemView.findViewById(R.id.reminderTime);
-            reminderRepeat = itemView.findViewById(R.id.reminderRepeat);
-        }
     }
 }
