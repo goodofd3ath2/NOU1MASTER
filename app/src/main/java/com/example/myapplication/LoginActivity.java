@@ -1,7 +1,8 @@
 package com.example.myapplication;
 
-import android.content.Intent; // Import necessário para navegação
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -9,6 +10,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -16,8 +18,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.myapplication.MainActivity;
-import com.example.myapplication.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +30,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton;
     private TextView forgotPasswordLink;
     private RequestQueue requestQueue; // Fila de requisições Volley
+    private LoginViewModel loginViewModel; // ViewModel para gerenciar o estado do login
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,37 +47,47 @@ public class LoginActivity extends AppCompatActivity {
         // Inicializando a fila de requisições do Volley
         requestQueue = Volley.newRequestQueue(this);
 
-        // Ação do botão de login
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String username = usernameEditText.getText().toString();
-                String password = passwordEditText.getText().toString();
+        // Inicializando o ViewModel
+        loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
-                if (username.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(LoginActivity.this, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show();
-                } else {
-                    // Lógica de autenticação com servidor
-                    authenticateUser(username, password);
-                }
+        // Observando o resultado do login no ViewModel
+        loginViewModel.getUserLiveData().observe(this, user -> {
+            if (user != null) {
+                // Redireciona para a tela principal se o login foi bem-sucedido
+                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                finish();
+            } else {
+                // Exibe uma mensagem de erro se o login falhar
+                Toast.makeText(LoginActivity.this, "Falha na autenticação. Tente novamente.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Ação do botão de login
+        loginButton.setOnClickListener(v -> {
+            String username = usernameEditText.getText().toString();
+            String password = passwordEditText.getText().toString();
+
+            if (username.isEmpty() || password.isEmpty()) {
+                Toast.makeText(LoginActivity.this, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show();
+            } else {
+                // Autenticação usando a função com Volley
+                authenticateUser(username, password);
             }
         });
 
         // Ação do link "Esqueceu a senha"
-        forgotPasswordLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navegar para a tela de recuperação de senha
-                Toast.makeText(LoginActivity.this, "Recuperação de senha", Toast.LENGTH_SHORT).show();
-            }
+        forgotPasswordLink.setOnClickListener(v -> {
+            // Exibe uma mensagem e navega para a tela de recuperação de senha
+            Toast.makeText(LoginActivity.this, "Recuperação de senha", Toast.LENGTH_SHORT).show();
+            // startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)); // Descomente para usar a tela de recuperação
         });
     }
 
-    // Função de autenticação usando Volley
+    // Método para autenticar o usuário
     private void authenticateUser(final String username, final String password) {
-        String url = "https://seu-servidor.com/api/login"; // Substitua com o URL da sua API
+        String url = "https://seu-servidor.com/api/login";  // Substitua pela URL correta da API
 
-        // Criar o JSON que será enviado na requisição
+        // Criação do JSON de dados para a requisição
         JSONObject loginData = new JSONObject();
         try {
             loginData.put("username", username);
@@ -85,7 +96,7 @@ public class LoginActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        // Criar uma requisição POST para autenticar o usuário
+        // Criação da requisição POST com Volley
         JsonObjectRequest loginRequest = new JsonObjectRequest(Request.Method.POST, url, loginData,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -93,12 +104,8 @@ public class LoginActivity extends AppCompatActivity {
                         try {
                             boolean success = response.getBoolean("success");
                             if (success) {
-                                Toast.makeText(LoginActivity.this, "Login bem-sucedido", Toast.LENGTH_SHORT).show();
-
-                                // Navegar para a tela principal após o login bem-sucedido
-                                Intent intent = new Intent(LoginActivity.this, MainActivity.class); // Substitua "MainActivity" com a Activity da sua tela principal
-                                startActivity(intent);
-                                finish(); // Finaliza a LoginActivity para que o usuário não possa voltar para ela com o botão de voltar
+                                // Processar login bem-sucedido
+                                loginViewModel.loginSuccess();
                             } else {
                                 Toast.makeText(LoginActivity.this, "Usuário ou senha incorretos", Toast.LENGTH_SHORT).show();
                             }
@@ -111,12 +118,19 @@ public class LoginActivity extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        // Tratar erros da requisição
+                        error.printStackTrace();
+                        if (error.networkResponse != null) {
+                            int statusCode = error.networkResponse.statusCode;
+                            String responseBody = new String(error.networkResponse.data);
+                            Log.e("LoginError", "Status code: " + statusCode + ", Response body: " + responseBody);
+                        }
                         Toast.makeText(LoginActivity.this, "Erro na comunicação com o servidor", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
 
-        // Adicionar a requisição à fila de requisições do Volley
+        // Adicionar a requisição à fila de requisições
         requestQueue.add(loginRequest);
     }
 }

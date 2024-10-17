@@ -28,12 +28,14 @@ public class CreateAccountActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_account);
 
+        // Vinculando os componentes do layout
         nameEditText = findViewById(R.id.nameEditText);
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         createAccountButton = findViewById(R.id.createAccountButton);
         backButton = findViewById(R.id.backButton); // Inicializa o botão de voltar
 
+        // Inicializa FirebaseAuth e FirebaseDatabase
         auth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Users");
 
@@ -41,9 +43,7 @@ public class CreateAccountActivity extends AppCompatActivity {
         createAccountButton.setOnClickListener(v -> createAccount());
 
         // Listener do botão de voltar
-        backButton.setOnClickListener(v -> {
-            onBackPressed(); // Chama a ação padrão de voltar
-        });
+        backButton.setOnClickListener(v -> onBackPressed()); // Chama a ação padrão de voltar
     }
 
     private void createAccount() {
@@ -51,12 +51,13 @@ public class CreateAccountActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
+        // Validação dos campos
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Cria a conta no Firebase
+        // Criação de conta no Firebase Authentication
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
@@ -68,14 +69,16 @@ public class CreateAccountActivity extends AppCompatActivity {
                         userMap.put("email", email);
                         userMap.put("uid", user.getUid());
 
+                        // Salva o usuário no Firebase Realtime Database
                         databaseReference.child(user.getUid()).setValue(userMap)
                                 .addOnCompleteListener(task1 -> {
                                     if (task1.isSuccessful()) {
                                         Toast.makeText(CreateAccountActivity.this, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show();
+
                                         // Redirecionar para a LoginActivity
                                         Intent intent = new Intent(CreateAccountActivity.this, LoginActivity.class);
                                         startActivity(intent);
-                                        finish();
+                                        finish(); // Finaliza a CreateAccountActivity
                                     } else {
                                         Toast.makeText(CreateAccountActivity.this, "Falha ao salvar informações: " + task1.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                     }

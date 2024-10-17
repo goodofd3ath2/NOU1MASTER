@@ -21,6 +21,10 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
     private List<Reminder> reminderList;
     private OnReminderClickListener listener;
 
+    public ReminderAdapter() {
+
+    }
+
     public interface OnReminderClickListener {
         void onEdit(int position, Reminder reminder);
         void onDelete(int position, Reminder reminder);
