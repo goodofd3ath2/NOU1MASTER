@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- Adicione o TextView para exibir o título ou configuração -->
+    <!-- Adiciona o TextView para exibir o título ou configuração -->
     <TextView
         android:id="@+id/textSettings"
         android:layout_width="wrap_content"

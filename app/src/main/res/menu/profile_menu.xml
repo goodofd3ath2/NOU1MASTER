@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- Item para acessar o Perfil -->
+    <item
+        android:id="@+id/action_profile"
+        android:title="Perfil"
+        android:icon="@drawable/ic_camera_black_24dp"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <!-- Item para Logout -->
+    <item
+        android:id="@+id/action_logout"
+        android:title="Logout"
+        android:icon="@drawable/ic_camera_black_24dp"
+        android:orderInCategory="101"
+        app:showAsAction="never" />
+
+</menu>

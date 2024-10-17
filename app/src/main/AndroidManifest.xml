@@ -49,6 +49,8 @@
             android:label="Criar Conta"
             android:theme="@style/Theme.MyApplication.NoActionBar" />
 
+        <activity android:name=".ProfileActivity" />
+
         <!-- Receiver for alarms -->
         <receiver
             android:name=".ui.reflow.AlarmReceiver"

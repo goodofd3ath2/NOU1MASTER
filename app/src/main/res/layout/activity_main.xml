@@ -1,105 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".MainActivity">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <data>
+        <!-- Definições de variáveis e objetos usados no DataBinding -->
+    </data>
+
+    <!-- DrawerLayout é o root do layout -->
+    <androidx.drawerlayout.widget.DrawerLayout
+        android:id="@+id/drawerlayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.drawerlayout.widget.DrawerLayout
-            android:id="@+id/drawer_layout"
+        <!-- Conteúdo principal -->
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <!-- Fragmento de navegação -->
+            <!-- Toolbar -->
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+            <!-- Fragment ou conteúdo principal da atividade -->
             <fragment
                 android:id="@+id/nav_host_fragment_content_main"
                 android:name="androidx.navigation.fragment.NavHostFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:navGraph="@navigation/mobile_navigation"
-                app:defaultNavHost="true" />
+                app:defaultNavHost="true"
+                app:navGraph="@navigation/mobile_navigation" />
 
-            <!-- Navegação lateral -->
-            <com.google.android.material.navigation.NavigationView
-                android:id="@+id/nav_view"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="start"
-                app:menu="@menu/navigation_drawer" />
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-        </androidx.drawerlayout.widget.DrawerLayout>
-
-        <!-- Layout principal que será substituído pelo NavHostFragment -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- NavigationView para o Drawer -->
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/nav_view"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:layout_gravity="top"
-            android:visibility="gone">
+            android:layout_gravity="start"
+            app:menu="@menu/drawer_menu"
+            app:headerLayout="@layout/nav_header_main" />
 
-            <!-- Calendar View -->
-            <CalendarView
-                android:id="@+id/calendar_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="?attr/actionBarSize"
-                android:padding="16dp" />
+    </androidx.drawerlayout.widget.DrawerLayout>
 
-            <!-- RecyclerView para exibir os lembretes -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/reminder_list"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="vertical"/>
-
-            <Button
-                android:id="@+id/button_edit_reminder"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Editar Lembrete"
-                android:visibility="gone" />
-
-            <!-- TextView para exibir lembretes -->
-            <TextView
-                android:id="@+id/reminder_text_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="16dp"
-                android:text="@string/no_reminders_found"
-                android:textSize="18sp" />
-
-            <!-- Botão para editar lembrete -->
-            <Button
-                android:id="@+id/editReminderButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/edit_reminder"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="16dp" />
-            <TextView
-                android:id="@+id/reminderTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="No reminders yet." />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/reminderRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
-
-        </LinearLayout>
-
-        <!-- BottomNavigationView -->
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottom_nav_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            app:menu="@menu/bottom_navigation" />
-
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

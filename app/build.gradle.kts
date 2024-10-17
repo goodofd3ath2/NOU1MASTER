@@ -74,5 +74,7 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-viewmodel:2.4.0")
     implementation ("androidx.lifecycle:lifecycle-livedata:2.4.0")
 
+    implementation ("com.android.volley:volley:1.2.1")
+
 }
 

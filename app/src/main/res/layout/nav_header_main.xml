@@ -4,20 +4,25 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="?attr/colorPrimary">
+    android:background="?android:attr/colorPrimaryDark">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/avatar_1"
+        android:contentDescription="Profile Picture" />
 
     <TextView
         android:id="@+id/nav_header_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Header Title"
-        android:textColor="@android:color/white"
-        android:textSize="20sp" />
+        android:text="Username"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
         android:id="@+id/nav_header_subtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Subtitle or User Info"
-        android:textColor="@android:color/white" />
+        android:text="user@example.com"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
 </LinearLayout>

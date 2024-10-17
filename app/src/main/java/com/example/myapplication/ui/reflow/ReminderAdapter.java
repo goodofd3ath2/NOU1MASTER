@@ -38,7 +38,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_reminder, parent, false);
         return new ReminderViewHolder(view);
     }
-
     @Override
     public void onBindViewHolder(@NonNull ReminderViewHolder holder, int position) {
         Reminder reminder = reminderList.get(position);
@@ -47,7 +46,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         holder.reminderText.setText(reminder.getText());
 
         // Define o horário do lembrete (se houver)
-        holder.reminderTime.setText(formatTime(reminder.getTimeInMillis()));  // Usa um método para formatar a hora do lembrete
+        holder.reminderTime.setText(formatTime(reminder.getTimeInMillis()));
 
         // Se o lembrete for repetido, exibe o texto de repetição
         if (reminder.getRepeatInterval() > 0) {
@@ -56,13 +55,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         } else {
             holder.reminderRepeat.setVisibility(View.GONE);  // Esconde o campo se não houver repetição
         }
-
-        // Configura os cliques para editar ou excluir, como já configurado anteriormente
-        holder.itemView.setOnClickListener(v -> listener.onEdit(position, reminder));
-        holder.itemView.setOnLongClickListener(v -> {
-            listener.onDelete(position, reminder);
-            return true;
-        });
     }
 
     // Método para formatar a hora do lembrete
