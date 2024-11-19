@@ -54,7 +54,21 @@
         android:layout_height="wrap_content"
         android:text="Permanecer conectado"
         android:textColor="#333"
-        android:layout_marginBottom="15dp" /> <!-- Diminuindo a margem inferior -->
+        android:layout_marginBottom="15dp" />
+
+    <!-- Botão Login com Firebase -->
+    <Button
+        android:id="@+id/loginFirebaseButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Login com Firebase" />
+
+    <!-- Botão Login com API -->
+    <Button
+        android:id="@+id/loginApiButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Login com API" />
 
     <!-- Botão Entrar -->
     <Button
@@ -65,7 +79,20 @@
         android:textColor="#fff"
         android:backgroundTint="#f87ac8"
         android:padding="15dp"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:layout_marginTop="15dp" />
+
+    <!-- Botão Criar Conta -->
+    <Button
+        android:id="@+id/signUpButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Criar Conta"
+        android:textColor="#fff"
+        android:backgroundTint="#4f49a6"
+        android:padding="15dp"
+        android:textSize="16sp"
+        android:layout_marginTop="15dp" />
 
     <!-- Link Esqueceu a senha -->
     <TextView

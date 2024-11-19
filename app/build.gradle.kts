@@ -1,45 +1,44 @@
 plugins {
-    alias(libs.plugins.android.application) // Usando alias do TOML para o plugin Android
-    alias(libs.plugins.kotlin.android) // Plugin Kotlin para Android
-    alias(libs.plugins.google.gms.google.services) // Plugin Google Services
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+  //  id("kotlin-kapt") // Necessário para o Room
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.myapplication" // Define o namespace do app
-    compileSdk = 34 // Versão do SDK de compilação
+    namespace = "com.example.myapplication"
+    compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.myapplication" // ID do aplicativo
-        minSdk = 24 // SDK mínimo suportado
-        targetSdk = 34 // Versão de SDK de destino
-        versionCode = 1 // Código da versão do app
-        versionName = "1.0" // Nome da versão
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" // Runner de testes
+        applicationId = "com.example.myapplication"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false // Desativa a minificação no build de release
+            isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), // Arquivo Proguard padrão
-                "proguard-rules.pro" // Regras Proguard específicas do projeto
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
             )
         }
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8 // Compatível com Java 8
-        targetCompatibility = JavaVersion.VERSION_1_8 // Alvo para Java 8
+        sourceCompatibility(JavaVersion.VERSION_1_8)
+        targetCompatibility(JavaVersion.VERSION_1_8)
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 
     buildFeatures {
+        viewBinding = true
         dataBinding = true
-        viewBinding = true // Habilita ViewBinding
-    }
-
-    kotlinOptions {
-        jvmTarget = "1.8" // Configuração do target JVM
     }
 }
 
@@ -53,28 +52,27 @@ dependencies {
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
 
+    // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.0.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-database-ktx")
 
+    implementation("androidx.room:room-runtime:2.5.0")
+   // kapt("androidx.room:room-compiler:2.5.0")
+    annotationProcessor("androidx.room:room-compiler:2.5.0") // Substituto do kapt
+    // Kotlin e Coroutines
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.0")
     implementation(libs.core.ktx)
-    implementation(libs.support.annotations)
     implementation(libs.kotlinx.coroutines.android)
 
-    // Only include Data Binding directly
-    implementation("androidx.databinding:databinding-runtime:8.6.1")
-    implementation(libs.drawerlayout)
-    implementation(libs.firebase.crashlytics.buildtools)
+    // Volley
+    implementation("com.android.volley:volley:1.2.1")
 
+    // Testes
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    implementation ("androidx.lifecycle:lifecycle-viewmodel:2.4.0")
-    implementation ("androidx.lifecycle:lifecycle-livedata:2.4.0")
-
-    implementation ("com.android.volley:volley:1.2.1")
-
+    implementation ("androidx.room:room-runtime:2.")
+    annotationProcessor "androidx.room:room-compiler:2.x.x"
 }
-

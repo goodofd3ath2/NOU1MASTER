@@ -22,6 +22,9 @@ library = "3.2.0-alpha11"
 databindingRuntime = "8.6.1"
 drawerlayout = "1.2.0"
 firebaseCrashlyticsBuildtools = "3.0.2"
+roomCommon = "2.6.1"
+roomRuntime = "2.6.1"
+roomCompiler = "2.6.1"
 
 [libraries]
 firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
@@ -44,6 +47,9 @@ library = { group = "androidx.databinding", name = "library", version.ref = "lib
 databinding-runtime = { group = "androidx.databinding", name = "databinding-runtime", version.ref = "databindingRuntime" }
 drawerlayout = { group = "androidx.drawerlayout", name = "drawerlayout", version.ref = "drawerlayout" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomRuntime" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomCompiler" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -9,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -19,7 +21,7 @@ public class CreateAccountActivity extends AppCompatActivity {
 
     private EditText nameEditText, emailEditText, passwordEditText;
     private Button createAccountButton;
-    private ImageButton backButton; // Botão de voltar
+    private ImageButton backButton;
     private FirebaseAuth auth;
     private DatabaseReference databaseReference;
 
@@ -33,7 +35,7 @@ public class CreateAccountActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         createAccountButton = findViewById(R.id.createAccountButton);
-        backButton = findViewById(R.id.backButton); // Inicializa o botão de voltar
+        backButton = findViewById(R.id.backButton);
 
         // Inicializa FirebaseAuth e FirebaseDatabase
         auth = FirebaseAuth.getInstance();
@@ -43,7 +45,7 @@ public class CreateAccountActivity extends AppCompatActivity {
         createAccountButton.setOnClickListener(v -> createAccount());
 
         // Listener do botão de voltar
-        backButton.setOnClickListener(v -> onBackPressed()); // Chama a ação padrão de voltar
+        backButton.setOnClickListener(v -> onBackPressed());
     }
 
     private void createAccount() {
@@ -56,6 +58,18 @@ public class CreateAccountActivity extends AppCompatActivity {
             Toast.makeText(this, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(this, "Insira um e-mail válido", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (password.length() < 6) {
+            Toast.makeText(this, "A senha deve ter pelo menos 6 caracteres", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Criando conta...");
+        progressDialog.show();
 
         // Criação de conta no Firebase Authentication
         auth.createUserWithEmailAndPassword(email, password)
@@ -63,37 +77,44 @@ public class CreateAccountActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
 
-                        // Salvar informações adicionais no Firebase Database
-                        HashMap<String, Object> userMap = new HashMap<>();
-                        userMap.put("name", name);
-                        userMap.put("email", email);
-                        userMap.put("uid", user.getUid());
+                        if (user != null) {
+                            // Salvar informações adicionais no Firebase Database
+                            HashMap<String, Object> userMap = new HashMap<>();
+                            userMap.put("name", name);
+                            userMap.put("email", email);
+                            userMap.put("created_at", System.currentTimeMillis());
 
-                        // Salva o usuário no Firebase Realtime Database
-                        databaseReference.child(user.getUid()).setValue(userMap)
-                                .addOnCompleteListener(task1 -> {
-                                    if (task1.isSuccessful()) {
-                                        Toast.makeText(CreateAccountActivity.this, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show();
-
-                                        // Redirecionar para a LoginActivity
-                                        Intent intent = new Intent(CreateAccountActivity.this, LoginActivity.class);
-                                        startActivity(intent);
-                                        finish(); // Finaliza a CreateAccountActivity
-                                    } else {
-                                        Toast.makeText(CreateAccountActivity.this, "Falha ao salvar informações: " + task1.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                    }
-                                });
+                            databaseReference.child(user.getUid()).setValue(userMap)
+                                    .addOnCompleteListener(dbTask -> {
+                                        progressDialog.dismiss();
+                                        if (dbTask.isSuccessful()) {
+                                            Toast.makeText(CreateAccountActivity.this, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show();
+                                            startActivity(new Intent(CreateAccountActivity.this, LoginActivity.class));
+                                            finish();
+                                        } else {
+                                            Toast.makeText(CreateAccountActivity.this, "Falha ao salvar informações: " + dbTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
                     } else {
-                        // Tratamento específico para erro de e-mail já utilizado
+                        progressDialog.dismiss();
                         if (task.getException() != null) {
-                            String errorMessage = task.getException().getMessage();
-                            if (errorMessage != null && errorMessage.contains("The email address is already in use by another account.")) {
-                                Toast.makeText(CreateAccountActivity.this, "Este e-mail já está em uso. Tente outro.", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(CreateAccountActivity.this, "Falha na criação da conta: " + errorMessage, Toast.LENGTH_SHORT).show();
+                            String errorCode = ((FirebaseAuthException) task.getException()).getErrorCode();
+                            switch (errorCode) {
+                                case "ERROR_WEAK_PASSWORD":
+                                    Toast.makeText(this, "A senha é muito fraca.", Toast.LENGTH_SHORT).show();
+                                    break;
+                                case "ERROR_INVALID_EMAIL":
+                                    Toast.makeText(this, "E-mail inválido.", Toast.LENGTH_SHORT).show();
+                                    break;
+                                case "ERROR_EMAIL_ALREADY_IN_USE":
+                                    Toast.makeText(this, "Este e-mail já está em uso.", Toast.LENGTH_SHORT).show();
+                                    break;
+                                default:
+                                    Toast.makeText(this, "Erro: " + errorCode, Toast.LENGTH_SHORT).show();
                             }
                         } else {
-                            Toast.makeText(CreateAccountActivity.this, "Falha na criação da conta. Tente novamente.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Falha na criação da conta. Tente novamente.", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
