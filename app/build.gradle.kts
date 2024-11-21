@@ -60,10 +60,7 @@ dependencies {
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
 
-    // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:32.0.0"))
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.firebase:firebase-database-ktx")
+
 
     implementation("androidx.room:room-runtime:2.5.0")
    // kapt("androidx.room:room-compiler:2.5.0")

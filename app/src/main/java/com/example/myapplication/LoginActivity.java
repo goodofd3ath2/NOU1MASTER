@@ -11,13 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,69 +20,30 @@ import org.json.JSONObject;
 public class LoginActivity extends AppCompatActivity {
 
     private EditText emailEditText, passwordEditText;
-    private Button loginFirebaseButton, loginApiButton, signUpButton;
-    private FirebaseAuth auth;
+    private Button loginApiButton, signUpButton;
+
     private RequestQueue requestQueue;
 
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Inicializa o Firebase
-        FirebaseApp.initializeApp(this);
-
         setContentView(R.layout.activity_login);
 
         // Vinculando os componentes do layout
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
-        loginFirebaseButton = findViewById(R.id.loginFirebaseButton);
         loginApiButton = findViewById(R.id.loginApiButton);
         signUpButton = findViewById(R.id.signUpButton);
 
-        signUpButton.setOnClickListener(v -> {
-            // Redireciona para a tela de criação de conta
-            startActivity(new Intent(this, CreateAccountActivity.class));
-        });
-
-        // Inicializa FirebaseAuth
-        auth = FirebaseAuth.getInstance();
-
         // Inicializa Volley
         requestQueue = Volley.newRequestQueue(this);
-
-        // Listener para login com Firebase
-        loginFirebaseButton.setOnClickListener(v -> loginWithFirebase());
 
         // Listener para login com API
         loginApiButton.setOnClickListener(v -> loginWithApi());
 
         // Redireciona para a tela de criação de conta
         signUpButton.setOnClickListener(v -> startActivity(new Intent(this, CreateAccountActivity.class)));
-    }
-
-    private void loginWithFirebase() {
-        String email = emailEditText.getText().toString().trim();
-        String password = passwordEditText.getText().toString().trim();
-
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        auth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = auth.getCurrentUser();
-                        Toast.makeText(this, "Bem-vindo, " + (user != null ? user.getEmail() : ""), Toast.LENGTH_SHORT).show();
-
-                        Intent intent = new Intent(this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        Toast.makeText(this, "Falha no login: " + (task.getException() != null ? task.getException().getMessage() : "Erro desconhecido"), Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
 
     private void loginWithApi() {
