@@ -22,13 +22,15 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
     private List<Reminder> reminderList = new ArrayList<>();
     private OnReminderClickListener listener;
 
-    public ReminderAdapter() {
-        this.listener = listener;
-    }
-
     public interface OnReminderClickListener {
         void onEdit(int position, Reminder reminder);
         void onDelete(int position, Reminder reminder);
+    }
+
+    // Construtor
+    public ReminderAdapter(List<Reminder> reminders, OnReminderClickListener listener) {
+        this.reminderList = reminders != null ? reminders : new ArrayList<>();
+        this.listener = listener;
     }
 
     @NonNull
@@ -42,6 +44,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
     public void onBindViewHolder(@NonNull ReminderViewHolder holder, int position) {
         Reminder reminder = reminderList.get(position);
 
+        // Exibe os dados do lembrete
         holder.reminderText.setText(reminder.getText());
         holder.reminderTime.setText(formatTime(reminder.getTimeInMillis()));
 
@@ -80,7 +83,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
 
     @Override
     public int getItemCount() {
-        return reminderList.size();
+        return reminderList != null ? reminderList.size() : 0;
     }
 
     public static class ReminderViewHolder extends RecyclerView.ViewHolder {
@@ -96,17 +99,9 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         }
     }
 
-    // Remove um lembrete
-    public void removeReminder(int position) {
-        if (position >= 0 && position < reminderList.size()) {
-            reminderList.remove(position);
-            notifyItemRemoved(position);
-        }
-    }
-
     // Atualiza a lista de lembretes
     public void setReminders(List<Reminder> reminders) {
-        this.reminderList = reminders;
+        this.reminderList = reminders != null ? reminders : new ArrayList<>();
         notifyDataSetChanged();
     }
 
@@ -114,5 +109,13 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
     public void addReminder(Reminder reminder) {
         this.reminderList.add(reminder);
         notifyItemInserted(reminderList.size() - 1);
+    }
+
+    // Remove um lembrete
+    public void removeReminder(int position) {
+        if (position >= 0 && position < reminderList.size()) {
+            reminderList.remove(position);
+            notifyItemRemoved(position);
+        }
     }
 }

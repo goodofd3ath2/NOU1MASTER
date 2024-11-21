@@ -12,6 +12,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
@@ -22,6 +23,7 @@ import com.example.myapplication.ui.reflow.ReminderDatabase;
 import com.example.myapplication.ui.settings.SettingsFragment;
 import com.google.android.material.navigation.NavigationView;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -48,19 +50,34 @@ public class MainActivity extends AppCompatActivity {
         // Inicializa o banco de dados
         reminderDatabase = Room.databaseBuilder(getApplicationContext(),
                 ReminderDatabase.class, "reminder_database").build();
-        ReminderDao reminderDao = reminderDatabase.reminderDao();
+
         // Configura o ActionBarDrawerToggle para sincronizar o ícone do menu (hamburger)
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();  // Sincroniza o estado do ícone do menu
+        toggle.syncState(); // Sincroniza o estado do ícone do menu
 
+        // Inicializa o RecyclerView
         reminderRecyclerView = findViewById(R.id.reminderRecyclerView);
-        // Initialize adapter
-        reminderAdapter = new ReminderAdapter();
+        reminderRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // Inicializa o Adapter com uma lista vazia e listener
+        reminderAdapter = new ReminderAdapter(new ArrayList<>(), new ReminderAdapter.OnReminderClickListener() {
+            @Override
+            public void onEdit(int position, Reminder reminder) {
+                // Lógica para editar o lembrete
+                Log.d("MainActivity", "Edit reminder at position: " + position);
+            }
+
+            @Override
+            public void onDelete(int position, Reminder reminder) {
+                // Lógica para deletar o lembrete
+                Log.d("MainActivity", "Delete reminder at position: " + position);
+            }
+        });
         reminderRecyclerView.setAdapter(reminderAdapter);
 
-        // Load reminders from database
+        // Carrega os lembretes do banco de dados
         loadReminders();
 
         // Configura a navegação no Drawer
@@ -89,11 +106,9 @@ public class MainActivity extends AppCompatActivity {
     private void loadReminders() {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                // Verifica se o banco de dados foi inicializado
                 if (reminderDatabase != null) {
                     // Carregar lembretes do banco de dados
-                    List<Reminder> loadedReminders = reminderDatabase.reminderDao().getReminders();
-
+                    List<Reminder> loadedReminders = reminderDatabase.reminderDao().getAllReminders();
 
                     // Atualiza o RecyclerView na thread principal
                     runOnUiThread(() -> reminderAdapter.setReminders(loadedReminders));
@@ -104,16 +119,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MainActivity", "Error loading reminders: ", e);
             }
         });
-
-
     }
-
 
     // Método para carregar um Fragment
     private void loadFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.nav_host_fragment_content_main, fragment);
-        transaction.addToBackStack(null);  // Permite voltar ao fragmento anterior com o botão "Voltar"
+        transaction.addToBackStack(null); // Permite voltar ao fragmento anterior com o botão "Voltar"
         transaction.commit();
     }
 
@@ -128,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
         // Redirecionar para a LoginActivity
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
-        finish();  // Finaliza a MainActivity
+        finish(); // Finaliza a MainActivity
     }
 
     @Override

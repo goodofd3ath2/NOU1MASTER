@@ -1,42 +1,70 @@
 package com.example.myapplication.ui.reflow;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.UUID;
-
+@Entity
 public class Reminder {
 
-    private String id; // Unique ID for each reminder
-    private String text; // Reminder text
-    private long timeInMillis; // Time in milliseconds
-    private String priority; // Reminder priority (e.g., High, Normal, Low)
-    private long repeatInterval; // Repeat interval (daily, weekly, etc.)
+    @PrimaryKey
+    @NonNull
+    private String id;
+    private String text;
+    private long timeInMillis;
+    private String priority;
+    private long repeatInterval;
 
-    // Constructor
     public Reminder(String text, long timeInMillis, String priority, long repeatInterval) {
-        this.id = UUID.randomUUID().toString(); // Generates a unique ID
+        this.id = java.util.UUID.randomUUID().toString();
         this.text = text;
         this.timeInMillis = timeInMillis;
         this.priority = priority;
         this.repeatInterval = repeatInterval;
     }
 
-    // Constructor from JSONObject
     public Reminder(JSONObject jsonObject) throws JSONException {
-        this.id = jsonObject.optString("id", UUID.randomUUID().toString()); // Generates ID if not present
+        this.id = jsonObject.optString("id", java.util.UUID.randomUUID().toString());
         this.text = jsonObject.getString("text");
         this.timeInMillis = jsonObject.getLong("timeInMillis");
         this.priority = jsonObject.getString("priority");
-        this.repeatInterval = jsonObject.optLong("repeatInterval", 0); // Default is 0 if not present
+        this.repeatInterval = jsonObject.optLong("repeatInterval", 0);
     }
 
-    // Getters and Setters
+    public static Reminder fromJson(JSONObject jsonObject) throws JSONException {
+        String id = jsonObject.optString("id", java.util.UUID.randomUUID().toString());
+        String text = jsonObject.getString("text");
+        long timeInMillis = jsonObject.getLong("timeInMillis");
+        String priority = jsonObject.getString("priority");
+        long repeatInterval = jsonObject.optLong("repeatInterval", 0);
+
+        Reminder reminder = new Reminder(text, timeInMillis, priority, repeatInterval);
+        reminder.setId(id);
+        return reminder;
+    }
+
+    public JSONObject toJson() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("id", id);
+            jsonObject.put("text", text);
+            jsonObject.put("timeInMillis", timeInMillis);
+            jsonObject.put("priority", priority);
+            jsonObject.put("repeatInterval", repeatInterval);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
+    }
+
+    @NonNull
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(@NonNull String id) {
         this.id = id;
     }
 
@@ -52,34 +80,23 @@ public class Reminder {
         return timeInMillis;
     }
 
+    public void setTimeInMillis(long timeInMillis) {
+        this.timeInMillis = timeInMillis;
+    }
+
     public String getPriority() {
         return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
 
     public long getRepeatInterval() {
         return repeatInterval;
     }
 
-    // JSON conversion methods
-    public JSONObject toJson() {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("id", id); // Unique ID
-            jsonObject.put("text", text); // Reminder text
-            jsonObject.put("timeInMillis", timeInMillis); // Reminder date/time
-            jsonObject.put("priority", priority); // Reminder priority
-            jsonObject.put("repeatInterval", repeatInterval); // Repeat interval
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return jsonObject;
-    }
-
-    public static Reminder fromJson(JSONObject jsonObject) throws JSONException {
-        String text = jsonObject.getString("text");
-        long timeInMillis = jsonObject.getLong("timeInMillis");
-        String priority = jsonObject.getString("priority");
-        long repeatInterval = jsonObject.optLong("repeatInterval", 0); // Default repeat interval is 0
-        return new Reminder(text, timeInMillis, priority, repeatInterval);
+    public void setRepeatInterval(long repeatInterval) {
+        this.repeatInterval = repeatInterval;
     }
 }
