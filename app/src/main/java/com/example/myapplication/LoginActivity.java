@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.loginButton);
-        signUpButton = findViewById(R.id.signUpButton); // Botão "Criar Conta"
+        signUpButton = findViewById(R.id.signUpButton);
 
         // Inicializa o banco de dados
         UserDatabase database = UserDatabase.getInstance(getApplicationContext());
@@ -56,7 +56,9 @@ public class LoginActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 if (user != null) {
                     Toast.makeText(this, "Login bem-sucedido", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    // Troca para a MainActivity
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intent);
                     finish();
                 } else {
                     Toast.makeText(this, "Usuário ou senha incorretos", Toast.LENGTH_SHORT).show();
