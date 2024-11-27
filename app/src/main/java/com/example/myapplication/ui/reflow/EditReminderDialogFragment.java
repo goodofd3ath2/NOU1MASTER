@@ -3,7 +3,6 @@ package com.example.myapplication.ui.reflow;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.InputType;
 import android.widget.EditText;
@@ -11,6 +10,8 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+
+import com.example.myapplication.ui.database.Reminder;
 
 public class EditReminderDialogFragment extends DialogFragment {
     private static final String ARG_REMINDER_TEXT = "reminder_text";

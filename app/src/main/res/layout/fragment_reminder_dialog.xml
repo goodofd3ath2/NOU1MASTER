@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#FFFFFF"
+    android:elevation="4dp">
 
     <!-- Campo de texto para o lembrete -->
     <EditText
@@ -12,45 +15,68 @@
         android:layout_height="wrap_content"
         android:hint="Digite o lembrete"
         android:inputType="text"
-        android:padding="8dp"
-        android:textSize="16sp" />
+        android:padding="12dp"
+        android:backgroundTint="#4F49A6"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
 
     <!-- CheckBox para selecionar se deve notificar -->
     <CheckBox
         android:id="@+id/checkbox_notify"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Notificar" />
+        android:text="Notificar"
+        android:textColor="#333333"
+        android:layout_marginBottom="12dp" />
 
     <!-- Grupo de botões de rádio para definir a prioridade -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Prioridade"
+        android:textColor="#4F49A6"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
     <RadioGroup
         android:id="@+id/radio_group_priority"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="8dp">
+        android:padding="8dp">
 
         <RadioButton
             android:id="@+id/radio_priority_normal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Normal"
-            android:checked="true" />
+            android:checked="true"
+            android:buttonTint="#4F49A6" />
 
         <RadioButton
             android:id="@+id/radio_priority_important"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Importante" />
+            android:text="Importante"
+            android:buttonTint="#F87AC8"
+            android:layout_marginStart="16dp" />
     </RadioGroup>
 
     <!-- Spinner para selecionar a repetição do lembrete -->
-    <Spinner
-        android:id="@+id/repeat_spinner"
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:prompt="@string/reminder_repeat_prompt"
-        android:entries="@array/repeat_options" />
+        android:text="Repetição"
+        android:textColor="#4F49A6"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp" />
+
+    <Spinner
+        android:id="@+id/repeat_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#CCCCCC" />
 
     <!-- Botões de ação: Salvar e Cancelar -->
     <LinearLayout
@@ -61,17 +87,20 @@
         android:paddingTop="16dp">
 
         <Button
-            android:id="@+id/btn_save"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Salvar" />
-
-        <Button
             android:id="@+id/btn_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cancelar"
-            android:layout_marginStart="16dp" />
-    </LinearLayout>
+            android:backgroundTint="#CCCCCC"
+            android:textColor="#FFFFFF"
+            android:layout_marginEnd="8dp" />
 
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Salvar"
+            android:backgroundTint="#4F49A6"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
 </LinearLayout>

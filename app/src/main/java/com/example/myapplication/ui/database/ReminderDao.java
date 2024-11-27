@@ -1,5 +1,6 @@
-package com.example.myapplication.ui.reflow;
+package com.example.myapplication.ui.database;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -11,6 +12,9 @@ import java.util.List;
 @Dao
 public interface ReminderDao {
 
+    @Query("SELECT * FROM Reminder")
+    List<Reminder> getAllReminders();
+
     @Insert
     void insertReminder(Reminder reminder);
 
@@ -20,9 +24,8 @@ public interface ReminderDao {
     @Delete
     void deleteReminder(Reminder reminder);
 
-    @Query("SELECT * FROM Reminder WHERE id = :id")
-    Reminder getReminderById(String id);
+    @Query("SELECT * FROM Reminder WHERE timeInMillis BETWEEN :startOfDay AND :endOfDay")
+    LiveData<List<Reminder>> getRemindersByTimeRange(long startOfDay, long endOfDay);
 
-    @Query("SELECT * FROM Reminder")
-    List<Reminder> getAllReminders();
+
 }

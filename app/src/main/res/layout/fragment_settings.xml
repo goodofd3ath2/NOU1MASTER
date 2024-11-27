@@ -4,9 +4,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#F9F9F9">
 
-    <!-- Adiciona o TextView para exibir o título ou configuração -->
+    <!-- Título de Configurações -->
     <TextView
         android:id="@+id/textSettings"
         android:layout_width="wrap_content"
@@ -14,53 +15,80 @@
         android:text="Configurações"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:textColor="#4F49A6"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="16dp" />
 
+    <!-- Campo de texto para Nome -->
     <EditText
         android:id="@+id/editTextName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Digite seu nome"
+        android:backgroundTint="#CCCCCC"
+        android:padding="12dp"
+        android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/textSettings"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="12dp" />
 
+    <!-- Campo de texto para Senha -->
     <EditText
         android:id="@+id/editTextPassword"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Digite sua nova senha"
         android:inputType="textPassword"
+        android:backgroundTint="#CCCCCC"
+        android:padding="12dp"
+        android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/editTextName"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="16dp" />
 
+    <!-- Botão Atualizar -->
     <Button
         android:id="@+id/buttonUpdate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Atualizar"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4F49A6"
         app:layout_constraintTop_toBottomOf="@id/editTextPassword"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="16dp" />
 
+    <!-- Imagem de Perfil -->
     <ImageView
         android:id="@+id/imageViewProfile"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
         android:layout_marginTop="16dp"
         android:src="@drawable/ic_person"
+        android:backgroundTint="#EEEEEE"
+        android:contentDescription="@string/profile_picture"
         app:layout_constraintTop_toBottomOf="@id/buttonUpdate"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="12dp" />
 
+    <!-- Botão Trocar Foto -->
     <Button
         android:id="@+id/buttonChangePhoto"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Trocar Foto"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#F87AC8"
         app:layout_constraintTop_toBottomOf="@id/imageViewProfile"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="16dp" />
 
+    <!-- Texto Acessar Moodle -->
     <TextView
         android:id="@+id/textViewMoodle"
         android:layout_width="wrap_content"
@@ -68,17 +96,22 @@
         android:text="Acessar Moodle"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:textColor="#333333"
         app:layout_constraintTop_toBottomOf="@id/buttonChangePhoto"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="8dp" />
 
+    <!-- Imagem do Moodle -->
     <ImageView
         android:id="@+id/imageViewMoodle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:src="@drawable/ic_moodle"
+        android:contentDescription="@string/access_moodle"
         app:layout_constraintTop_toBottomOf="@id/textViewMoodle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:contentDescription="@string/access_moodle" />
+        android:layout_marginTop="8dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

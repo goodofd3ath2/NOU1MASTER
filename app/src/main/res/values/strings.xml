@@ -10,10 +10,12 @@
 
     <string name="navigation_drawer_open">Abrir Navegação</string>
     <string name="navigation_drawer_close">Fechar Navegação</string>
+    <string name="profile_picture">Foto de perfil</string> <!-- Tradução da string -->
     <string-array name="repeat_options">
-        <item>Sem repetição</item>
+        <item>Sem Repetição</item>
         <item>Diariamente</item>
         <item>Semanalmente</item>
+        <item>Mensalmente</item>
     </string-array>
     <string name="repeat_label">Repetição: %1$s</string>
 

@@ -1,46 +1,78 @@
 package com.example.myapplication.ui.reflow;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import org.json.JSONArray;
-import org.json.JSONException;
+import com.example.myapplication.ui.database.Reminder;
+import com.example.myapplication.ui.database.ReminderDao;
+import com.example.myapplication.ui.database.ReminderDatabase;
+import com.example.myapplication.ui.utils.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ReflowViewModel extends ViewModel {
 
-    private final MutableLiveData<List<Reminder>> reminders = new MutableLiveData<>();
-    static final String PREFS_NAME = "Reminders";
+    private final ReminderDao reminderDao;
+    private final ExecutorService executorService;
 
-    public LiveData<List<Reminder>> getReminders() {
-        return reminders;
+    public ReflowViewModel(Context context) {
+        // Inicializa o ReminderDao usando o banco de dados
+        ReminderDatabase database = ReminderDatabase.getInstance(context);
+        reminderDao = database.reminderDao();
+
+        // Executor para operações assíncronas
+        executorService = Executors.newSingleThreadExecutor();
     }
 
-    public LiveData<List<Reminder>> loadReminders(int year, int month, int dayOfMonth, Context context) {
-        new Thread(() -> {
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-            String dateKey = String.format("%d_%d_%d", year, month, dayOfMonth);
-            String reminderData = prefs.getString(dateKey, "[]");
+    /**
+     * Insere um lembrete no banco de dados.
+     *
+     * @param reminder O lembrete a ser inserido
+     */
+    public void insertReminder(Reminder reminder) {
+        executorService.execute(() -> reminderDao.insertReminder(reminder));
+    }
 
-            List<Reminder> reminderList = new ArrayList<>();
-            try {
-                JSONArray jsonArray = new JSONArray(reminderData);
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    reminderList.add(Reminder.fromJson(jsonArray.getJSONObject(i)));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+    /**
+     * Carrega lembretes para uma data específica.
+     *
+     * @param year        Ano
+     * @param month       Mês (0-based, janeiro = 0)
+     * @param dayOfMonth  Dia do mês
+     * @return LiveData contendo a lista de lembretes
+     */
+    public LiveData<List<Reminder>> loadReminders(int year, int month, int dayOfMonth) {
+        long startOfDay = Utils.getStartOfDayInMillis(year, month, dayOfMonth);
+        long endOfDay = Utils.getEndOfDayInMillis(year, month, dayOfMonth);
 
-            reminders.postValue(reminderList);
-        }).start();
+        return reminderDao.getRemindersByTimeRange(startOfDay, endOfDay);
+    }
 
-        return reminders;
+    /**
+     * Deleta um lembrete específico.
+     *
+     * @param reminder Lembrete a ser deletado
+     */
+    public void deleteReminder(Reminder reminder) {
+        executorService.execute(() -> reminderDao.deleteReminder(reminder));
+    }
+
+    /**
+     * Atualiza um lembrete no banco de dados.
+     *
+     * @param reminder Lembrete a ser atualizado
+     */
+    public void updateReminder(Reminder reminder) {
+        executorService.execute(() -> reminderDao.updateReminder(reminder));
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        executorService.shutdown();
     }
 }
