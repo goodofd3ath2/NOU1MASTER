@@ -59,8 +59,8 @@ public class ReflowFragment extends Fragment {
             }
         });
 
-        // Inicializa o ViewModel
-        reflowViewModel = new ViewModelProvider(this).get(ReflowViewModel.class);
+        // Inicializa o ViewModel com uma Factory personalizada
+        reflowViewModel = new ViewModelProvider(this, new ReflowViewModelFactory(requireContext())).get(ReflowViewModel.class);
 
         // Inicializa a lista de lembretes
         reminderList = new ArrayList<>();
@@ -142,22 +142,23 @@ public class ReflowFragment extends Fragment {
         }
     }
 
-
     private void setupRecyclerView() {
         // Configura o RecyclerView com um LayoutManager e o Adapter
-        reminderRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        reminderAdapter = new ReminderAdapter(reminderList, new ReminderAdapter.OnReminderClickListener() {
-            @Override
-            public void onEdit(int position, Reminder reminder) {
-                showEditReminderDialog(position, reminder);
-            }
+        if (reminderRecyclerView != null) {
+            reminderRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            reminderAdapter = new ReminderAdapter(reminderList, new ReminderAdapter.OnReminderClickListener() {
+                @Override
+                public void onEdit(int position, Reminder reminder) {
+                    showEditReminderDialog(position, reminder);
+                }
 
-            @Override
-            public void onDelete(int position, Reminder reminder) {
-                showDeleteConfirmationDialog(position, reminder);
-            }
-        });
-        reminderRecyclerView.setAdapter(reminderAdapter);
+                @Override
+                public void onDelete(int position, Reminder reminder) {
+                    showDeleteConfirmationDialog(position, reminder);
+                }
+            });
+            reminderRecyclerView.setAdapter(reminderAdapter);
+        }
     }
 
     private void showEditReminderDialog(int position, Reminder reminder) {

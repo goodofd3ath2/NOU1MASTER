@@ -24,3 +24,4 @@ public abstract class ReminderDatabase extends RoomDatabase {
         return instance;
     }
 }
+

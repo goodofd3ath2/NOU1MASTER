@@ -13,6 +13,10 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
@@ -21,6 +25,7 @@ import com.example.myapplication.ui.database.Reminder;
 import com.example.myapplication.ui.database.ReminderAdapter;
 import com.example.myapplication.ui.database.ReminderDatabase;
 import com.example.myapplication.ui.settings.SettingsFragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
 import java.io.File;
@@ -46,6 +51,16 @@ public class MainActivity extends AppCompatActivity {
         // Configura a Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // Configura o BottomNavigationView
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+
+        // Configura o NavController com o BottomNavigationView
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.nav_transform, R.id.nav_reflow, R.id.nav_settings).build();
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        NavigationUI.setupWithNavController(bottomNavigationView, navController);
 
         // Configura o DrawerLayout e o NavigationView
         drawerLayout = findViewById(R.id.drawerlayout);

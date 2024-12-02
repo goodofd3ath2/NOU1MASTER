@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -27,14 +28,12 @@ public class CreateAccountActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_account);
 
-        // Vinculando os componentes do layout
         nameEditText = findViewById(R.id.nameEditText);
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         createAccountButton = findViewById(R.id.createAccountButton);
         backButton = findViewById(R.id.backButton);
 
-        // Inicializa o banco de dados e o DAO
         ReminderDatabase database = Room.databaseBuilder(
                 getApplicationContext(),
                 ReminderDatabase.class,
@@ -42,19 +41,16 @@ public class CreateAccountActivity extends AppCompatActivity {
         ).build();
         userDao = database.userDao();
 
-        // Listener do botão de criar conta
-        createAccountButton.setOnClickListener(v -> createAccount(database));
-
-        // Listener do botão de voltar
+        createAccountButton.setOnClickListener(v -> createAccount());
         backButton.setOnClickListener(v -> onBackPressed());
     }
 
-    private void createAccount(ReminderDatabase database) {
+    private void createAccount() {
         String name = nameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
-        // Validação dos campos
+        // Validações básicas
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show();
             return;
@@ -70,33 +66,56 @@ public class CreateAccountActivity extends AppCompatActivity {
             return;
         }
 
-        // Exibe um ProgressDialog enquanto a conta está sendo criada
+        // Exibe um progresso enquanto a conta está sendo criada
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Criando conta...");
         progressDialog.show();
 
+        // Operação em Thread separada
         new Thread(() -> {
-            // Verifica se o e-mail já está cadastrado
-            User existingUser = userDao.getUserByEmail(email);
+            try {
+                UserDao userDao = ReminderDatabase.getInstance(getApplicationContext()).userDao();
 
-            if (existingUser != null) {
+                // Verifica se o e-mail já está cadastrado
+                Log.d("DatabaseDebug", "Checking user existence for email: " + email);
+                User existingUser = userDao.getUserByEmail(email);
+                Log.d("DatabaseDebug", "Existing user: " + (existingUser != null));
+
+                if (existingUser != null) {
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(this, "E-mail já cadastrado!", Toast.LENGTH_SHORT).show();
+                    });
+                    return;
+                }
+
+                // Cria o novo usuário
+                User newUser = new User(email, password, name);
+                Log.d("DatabaseDebug", "Inserting new user: " + newUser);
+                userDao.insertUser(newUser);
+
+                // Valida a inserção
+                User insertedUser = userDao.getUserByEmail(email);
+                Log.d("DatabaseDebug", "Inserted user: " + (insertedUser != null));
+
                 runOnUiThread(() -> {
                     progressDialog.dismiss();
-                    Toast.makeText(this, "E-mail já cadastrado!", Toast.LENGTH_SHORT).show();
+                    if (insertedUser != null) {
+                        Toast.makeText(this, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show();
+                        finish(); // Fecha a Activity e retorna
+                    } else {
+                        Toast.makeText(this, "Erro ao salvar a conta. Tente novamente.", Toast.LENGTH_SHORT).show();
+                    }
                 });
-                return;
+
+            } catch (Exception e) {
+                Log.e("DatabaseDebug", "Error during account creation: ", e);
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
             }
-
-            // Insere o novo usuário no banco de dados
-            User newUser = new User(name, email, password);
-            userDao.insertUser(newUser);
-
-            // Atualiza a UI após o sucesso
-            runOnUiThread(() -> {
-                progressDialog.dismiss();
-                Toast.makeText(this, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show();
-                finish();
-            });
         }).start();
     }
+
 }
