@@ -1,14 +1,19 @@
 package com.example.myapplication;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -38,6 +43,8 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CODE = 100; // Código de solicitação de permissão
+
     private DrawerLayout drawerLayout;
     private RecyclerView reminderRecyclerView;
     private ReminderAdapter reminderAdapter;
@@ -47,6 +54,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Solicitar permissão de leitura de armazenamento externo
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    REQUEST_CODE);
+        }
 
         // Configura a Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -121,16 +136,27 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Carrega os lembretes do banco de dados e realiza backup automaticamente.
-     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permissão concedida
+                Toast.makeText(this, "Permissão concedida", Toast.LENGTH_SHORT).show();
+                // Chamar métodos que dependem da permissão aqui
+                exportDatabase();
+            } else {
+                // Permissão negada
+                Toast.makeText(this, "Permissão negada", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     private void loadReminders() {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
                 List<Reminder> loadedReminders = reminderDatabase.reminderDao().getAllReminders();
                 runOnUiThread(() -> reminderAdapter.setReminders(loadedReminders));
-
-                // Realiza o backup do banco de dados após carregar os lembretes
                 exportDatabase();
             } catch (Exception e) {
                 runOnUiThread(() -> Toast.makeText(this, "Erro ao carregar lembretes.", Toast.LENGTH_SHORT).show());
@@ -139,12 +165,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Exclui um lembrete do banco de dados e realiza backup automaticamente.
-     *
-     * @param position Posição do lembrete no RecyclerView
-     * @param reminder Lembrete a ser excluído
-     */
     private void deleteReminder(int position, Reminder reminder) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
@@ -152,8 +172,6 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     reminderAdapter.removeReminder(position);
                     Toast.makeText(MainActivity.this, "Lembrete excluído", Toast.LENGTH_SHORT).show();
-
-                    // Realiza o backup do banco de dados após excluir um lembrete
                     exportDatabase();
                 });
             } catch (Exception e) {
@@ -163,9 +181,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Realiza a exportação do banco de dados para o armazenamento externo.
-     */
     private void exportDatabase() {
         try {
             File currentDB = getDatabasePath("reminder_database");
@@ -183,11 +198,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Carrega o fragmento selecionado na tela principal.
-     *
-     * @param fragment O fragmento a ser carregado
-     */
     private void loadFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.nav_host_fragment_content_main, fragment);
@@ -195,9 +205,6 @@ public class MainActivity extends AppCompatActivity {
         transaction.commit();
     }
 
-    /**
-     * Realiza o logout do usuário e redireciona para a LoginActivity.
-     */
     private void logoutUser() {
         SharedPreferences preferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();

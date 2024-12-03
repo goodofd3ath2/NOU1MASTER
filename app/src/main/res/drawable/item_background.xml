@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Cor de fundo -->
+    <solid android:color="#FFFFFF" />
+
+    <!-- Bordas arredondadas -->
+    <corners android:radius="8dp" />
+
+    <!-- Borda ao redor -->
+    <stroke
+        android:width="1dp"
+        android:color="#DDDDDD" />
+
+    <!-- Sombra ou elevação pode ser feita com um drawable ou propriedades modernas -->
+</shape>
