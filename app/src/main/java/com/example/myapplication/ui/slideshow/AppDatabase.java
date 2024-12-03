@@ -5,21 +5,20 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import android.content.Context;
 
-@Database(entities = {Anotacao.class}, version = 1)
+@Database(entities = {Anotacao.class}, version = 1, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
+    private static AppDatabase instance;
+
     public abstract AnotacaoDao anotacaoDao();
 
-    private static volatile AppDatabase INSTANCE;
-
-    public static AppDatabase getDatabase(final Context context) {
-        if (INSTANCE == null) {
-            synchronized (AppDatabase.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            AppDatabase.class, "anotacao_database").build();
-                }
-            }
+    public static synchronized AppDatabase getInstance(Context context) {
+        if (instance == null) {
+            instance = Room.databaseBuilder(context.getApplicationContext(),
+                            AppDatabase.class, "my_database")
+                    .fallbackToDestructiveMigration()
+                    .build();
         }
-        return INSTANCE;
+        return instance;
     }
 }
+

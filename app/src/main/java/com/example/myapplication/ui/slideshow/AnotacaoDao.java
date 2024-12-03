@@ -17,4 +17,12 @@ public interface AnotacaoDao {
 
     @Query("SELECT * FROM anotacoes WHERE disciplina = :disciplina ORDER BY id DESC")
     List<Anotacao> getAnotacoesPorDisciplina(String disciplina);
+
+
+    @Query("SELECT DISTINCT disciplina FROM anotacoes")
+    List<String> getAllDisciplinas();
+
+    @Query("SELECT * FROM anotacoes WHERE disciplina = :disciplina")
+    List<Anotacao> getAnotacoesByDisciplina(String disciplina);
 }
+

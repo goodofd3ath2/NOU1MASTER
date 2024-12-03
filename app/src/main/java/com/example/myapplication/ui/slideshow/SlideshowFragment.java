@@ -35,7 +35,9 @@ public class SlideshowFragment extends Fragment {
         binding = FragmentSlideshowBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        database = AppDatabase.getDatabase(requireContext());
+        // Inicializar a instância do banco de dados
+        database = AppDatabase.getInstance(requireContext());
+
         configurarSpinner();
         configurarRecyclerView();
         configurarBotoes();
@@ -45,9 +47,9 @@ public class SlideshowFragment extends Fragment {
 
     private void configurarSpinner() {
         String[] disciplinas = {"Algoritmos", "Estruturas de Dados", "Engenharia de Software"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, disciplinas);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        binding.spinnerDisciplinas.setAdapter(adapter);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, disciplinas);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        binding.spinnerDisciplinas.setAdapter(spinnerAdapter);
 
         binding.spinnerDisciplinas.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
@@ -63,11 +65,10 @@ public class SlideshowFragment extends Fragment {
     }
 
     private void configurarRecyclerView() {
-        adapter = new AnotacaoAdapter(new ArrayList<>(), anotacao -> abrirDialogoEditar(anotacao));
+        adapter = new AnotacaoAdapter(new ArrayList<>(), this::abrirDialogoEditar);
         binding.recyclerViewAnotacoes.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recyclerViewAnotacoes.setAdapter(adapter);
     }
-
 
     private void configurarBotoes() {
         binding.buttonSalvarAnotacao.setOnClickListener(v -> salvarAnotacao());
@@ -81,7 +82,11 @@ public class SlideshowFragment extends Fragment {
         }
 
         String dataHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
-        Anotacao novaAnotacao = new Anotacao(texto, disciplinaAtual, dataHora, false);
+        Anotacao novaAnotacao = new Anotacao();
+        novaAnotacao.setTexto(texto);
+        novaAnotacao.setDisciplina(disciplinaAtual);
+        novaAnotacao.setDataHoraCriacao(dataHora);
+        novaAnotacao.setEditado(false);
 
         Executors.newSingleThreadExecutor().execute(() -> {
             database.anotacaoDao().insert(novaAnotacao);

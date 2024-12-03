@@ -3,24 +3,18 @@ package com.example.myapplication.ui.slideshow;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "anotacoes")
+@Entity(tableName = "anotacoes") // Nome da tabela ajustado
 public class Anotacao {
     @PrimaryKey(autoGenerate = true)
     private int id;
+
     private String texto;
     private String disciplina;
     private String dataHoraCriacao;
     private String dataHoraEdicao;
     private boolean editado;
 
-    public Anotacao(String texto, String disciplina, String dataHoraCriacao, boolean editado) {
-        this.texto = texto;
-        this.disciplina = disciplina;
-        this.dataHoraCriacao = dataHoraCriacao;
-        this.editado = editado;
-        this.dataHoraEdicao = null;
-    }
-
+    // Getters e setters
     public int getId() {
         return id;
     }
@@ -49,6 +43,10 @@ public class Anotacao {
         return dataHoraCriacao;
     }
 
+    public void setDataHoraCriacao(String dataHoraCriacao) {
+        this.dataHoraCriacao = dataHoraCriacao;
+    }
+
     public String getDataHoraEdicao() {
         return dataHoraEdicao;
     }
@@ -65,3 +63,4 @@ public class Anotacao {
         this.editado = editado;
     }
 }
+
